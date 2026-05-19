@@ -174,11 +174,7 @@ The UI uses `dir="rtl"` on Hebrew text nodes while keeping the structural layout
 
 ## 👤 Authors
 
-**Linoy Cohen**
-**Asaf Eliyahu**
-**Tehila Ben Dahan**
-**Etay Ofir**
-**Andrei Bel**
+**Linoy Cohen, Asaf Eliyahu, Tehila Ben Dahan, Etay Ofir, Andrei Bel**
 
 Information Systems Engineering & Software Engineering Students
 Course: Advanced Web Technologies

@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedScript — Design System & Architecture</title>
+  <script>tailwind={config:{darkMode:'class'}}</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#d8d2c8;border-radius:3px}
+    .dark ::-webkit-scrollbar-thumb{background:#3a3835}
+
+    /* Sidebar nav highlight */
+    .nav-link{display:block;padding:5px 12px;border-radius:6px;font-size:12px;color:#6b6560;transition:all .15s;cursor:pointer;border-left:2px solid transparent}
+    .nav-link:hover{background:#ece9e1;color:#1e1e1c}
+    .nav-link.active{background:#fdf0eb;border-left-color:#c15f3c;color:#c15f3c;font-weight:600}
+    .dark .nav-link{color:#9a9590}
+    .dark .nav-link:hover{background:#2a2825;color:#e8e5e0}
+    .dark .nav-link.active{background:#2d1e18;border-left-color:#c15f3c;color:#e8855e}
+
+    /* Section headings */
+    .section-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .section-sub{font-size:13px;color:#8a8070;margin-bottom:28px}
+
+    /* Token swatches */
+    .swatch{border-radius:8px;height:48px;border:1px solid rgba(0,0,0,.08)}
+
+    /* Component preview boxes */
+    .preview-box{background:#f4f3ee;border:1px solid #d8d2c8;border-radius:10px;padding:20px;min-height:60px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+    .dark .preview-box{background:#222220;border-color:#3a3835}
+    .code-block{background:#1a1a18;color:#e8e5e0;border-radius:8px;padding:14px 16px;font-size:11px;font-family:'SF Mono','Fira Code',monospace;overflow-x:auto;line-height:1.7;margin-top:8px;white-space:pre}
+
+    /* Component specimens */
+    .btn-primary{background:#c15f3c;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
+    .btn-primary:hover{background:#a04e31}
+    .btn-secondary{background:transparent;color:#1e1e1c;border:1.5px solid #d8d2c8;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+    .btn-secondary:hover{background:#ece9e1}
+    .btn-ghost{background:transparent;color:#c15f3c;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+    .btn-ghost:hover{background:#fdf0eb}
+    .btn-danger{background:#ef4444;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer}
+    .btn-icon{background:#c15f3c;color:#fff;border:none;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
+
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600}
+    .badge-live{background:#fef2f2;color:#dc2626}
+    .badge-signed{background:#f0fdf4;color:#16a34a}
+    .badge-draft{background:#fefce8;color:#ca8a04}
+    .badge-active{background:#fdf0eb;color:#c15f3c}
+
+    .si-demo{padding:6px 10px;font-size:12px;border-radius:6px;border:1.5px solid #d8d2c8;background:#fff;outline:none;color:#1e1e1c;transition:border-color .15s;width:100%}
+    .si-demo:focus{border-color:#c15f3c;box-shadow:0 0 0 3px rgba(193,95,60,.15)}
+
+    .transcript-demo{border-left:3px solid #3b82f6;padding-left:10px}
+    .proto-step{display:flex;gap:8px;padding:7px 10px;background:#fff;border-radius:8px;border:1px solid #d8d2c8}
+    .step-check{width:16px;height:16px;border-radius:50%;border:2px solid #d8d2c8;flex-shrink:0;margin-top:2px}
+    .step-check.done{background:#22c55e;border-color:#22c55e;display:flex;align-items:center;justify-content:center}
+
+    .timer-demo{background:#fff;border:1px solid #d8d2c8;border-radius:12px;padding:12px 14px;width:220px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+
+    .stat-demo{background:#fff;border:1px solid #d8d2c8;border-radius:12px;padding:16px;min-width:120px}
+
+    /* Mermaid overrides */
+    .mermaid{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
+    .mermaid-wrap{background:#f4f3ee;border:1px solid #d8d2c8;border-radius:12px;padding:24px;overflow-x:auto}
+    .dark .mermaid-wrap{background:#222220;border-color:#3a3835}
+
+    /* Spacing */
+    section{padding-top:60px;margin-top:-60px}
+
+    /* Grid */
+    .token-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+    .type-scale-row{display:flex;align-items:baseline;gap:16px;padding:8px 0;border-bottom:1px solid #ece9e1}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .fade-in{animation:fadeUp .4s ease-out}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  </style>
+</head>
+
+<body class="bg-[#f4f3ee] dark:bg-[#1a1a18] text-[#1e1e1c] dark:text-[#e8e5e0] transition-colors duration-200">
+
+<!-- ══════════════════ TOP BAR ══════════════════ -->
+<div class="fixed top-0 left-0 right-0 h-12 bg-[#f4f3ee]/90 dark:bg-[#1a1a18]/90 backdrop-blur border-b border-[#d8d2c8] dark:border-[#3a3835] flex items-center px-6 z-50 gap-4">
+  <div class="flex items-center gap-2">
+    <div class="w-6 h-6 rounded-md bg-[#c15f3c] flex items-center justify-center text-white text-xs font-bold">M</div>
+    <span class="font-semibold text-sm">MedScript</span>
+    <span class="text-xs text-[#b1ada1] hidden sm:block">/ Design System & Architecture</span>
+  </div>
+  <div class="flex-1"></div>
+  <span class="text-[10px] text-[#b1ada1] hidden md:block">v2.0 — React + Express</span>
+  <button onclick="toggleDark()" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#ece9e1] dark:hover:bg-[#2a2825] transition-colors text-sm">
+    <span id="theme-icon">🌙</span>
+  </button>
+  <a href="index.html" class="text-[11px] text-[#b1ada1] hover:text-[#c15f3c] transition-colors">← App</a>
+</div>
+
+<!-- ══════════════════ LAYOUT ══════════════════ --><div class="flex pt-12 min-h-screen">
+
+  <!-- SIDEBAR -->
+  <nav class="w-52 shrink-0 sticky top-12 h-[calc(100vh-48px)] overflow-y-auto border-r border-[#d8d2c8] dark:border-[#3a3835] p-4 hidden md:block">
+    <div class="space-y-0.5" id="sidebar-nav">
+      <div class="text-[9px] uppercase tracking-widest text-[#b1ada1] font-semibold px-3 pt-2 pb-1">Foundation</div>
+      <a class="nav-link" onclick="scrollTo('tokens')">Design Tokens</a>
+      <a class="nav-link" onclick="scrollTo('typography')">Typography</a>
+      <a class="nav-link" onclick="scrollTo('spacing')">Spacing & Grid</a>
+      <div class="text-[9px] uppercase tracking-widest text-[#b1ada1] font-semibold px-3 pt-4 pb-1">Components UI</div>
+      <a class="nav-link" onclick="scrollTo('comp-ui-primitives')">Primitives</a>
+      <a class="nav-link" onclick="scrollTo('comp-ui-feedback')">Feedback</a>
+      <a class="nav-link" onclick="scrollTo('comp-ui-domain')">Domain Molecules</a>
+      <div class="text-[9px] uppercase tracking-widest text-[#b1ada1] font-semibold px-3 pt-4 pb-1">Pages</div>
+      <a class="nav-link" onclick="scrollTo('page-auth')">Auth</a>
+      <a class="nav-link" onclick="scrollTo('page-dashboard')">Dashboard</a>
+      <a class="nav-link" onclick="scrollTo('page-session')">Session Room</a>
+      <a class="nav-link" onclick="scrollTo('page-voice-stamp')">Voice Stamp</a>
+      <a class="nav-link" onclick="scrollTo('page-settings')">Settings</a>
+      <a class="nav-link" onclick="scrollTo('page-patient-lookup')">Patient Lookup</a>
+      <a class="nav-link" onclick="scrollTo('page-admin')">Admin</a>
+      <div class="text-[9px] uppercase tracking-widest text-[#b1ada1] font-semibold px-3 pt-4 pb-1">Architecture</div>
+      <a class="nav-link" onclick="scrollTo('system-arch')">System Architecture</a>
+      <a class="nav-link" onclick="scrollTo('auth-flow')">Auth Flow</a>
+      <a class="nav-link" onclick="scrollTo('data-flow')">Data Pipeline</a>
+      <a class="nav-link" onclick="scrollTo('database')">Database Schema</a>
+      <div class="text-[9px] uppercase tracking-widest text-[#b1ada1] font-semibold px-3 pt-4 pb-1">Stack</div>
+      <a class="nav-link" onclick="scrollTo('tech-stack')">Tech Stack</a>
+      <a class="nav-link" onclick="scrollTo('folder-structure')">Folder Structure</a>
+      <a class="nav-link" onclick="scrollTo('coupling')">Coupling & Boundaries</a>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 max-w-4xl mx-auto px-6 py-10 pb-24">
+
+    <!-- ── INTRO ── -->
+    <div class="mb-14 fade-in">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#fdf0eb] text-[#c15f3c] text-[10px] font-semibold uppercase tracking-wider mb-4">Design System v2.0</div>
+      <h1 class="text-3xl font-bold mb-2">MedScript UI System</h1>
+      <p class="text-[#8a8070] dark:text-[#9a9590] text-base max-w-xl leading-relaxed">Design language and architecture guide for MedScript — React SPA + Node/Express backend. Components UI for generics, co-located page components for domain logic.</p>
+      <div class="flex gap-3 mt-5 flex-wrap">
+        <span class="px-3 py-1 rounded-full text-xs bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560] dark:text-[#9a9590]">React 19 + Vite</span>
+        <span class="px-3 py-1 rounded-full text-xs bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560] dark:text-[#9a9590]">React Router v7</span>
+        <span class="px-3 py-1 rounded-full text-xs bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560] dark:text-[#9a9590]">Zustand</span>
+        <span class="px-3 py-1 rounded-full text-xs bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560] dark:text-[#9a9590]">Tailwind CSS 4</span>
+        <span class="px-3 py-1 rounded-full text-xs bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560] dark:text-[#9a9590]">Node / Express</span>
+        <span class="px-3 py-1 rounded-full text-xs bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560] dark:text-[#9a9590]">Supabase</span>
+        <span class="px-3 py-1 rounded-full text-xs bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560] dark:text-[#9a9590]">Claude API</span>
+      </div>
+    </div>
+
+    <!-- ══════════════ DESIGN TOKENS ══════════════ -->
+    <section id="tokens">
+      <div class="section-title">Design Tokens</div>
+      <div class="section-sub">The primitive values that define the visual language — map directly to CSS custom properties and Tailwind config.</div>
+
+      <!-- Color palette -->
+      <div class="mb-8">
+        <div class="text-xs font-semibold uppercase tracking-widest text-[#b1ada1] mb-3">Brand Palette</div>
+        <div class="token-grid">
+          <div>
+            <div class="swatch" style="background:#c15f3c"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--brand-primary</div>
+            <div class="text-[10px] text-[#b1ada1]">#c15f3c</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#a04e31"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--brand-hover</div>
+            <div class="text-[10px] text-[#b1ada1]">#a04e31</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#fdf0eb;border:1px solid #d8d2c8"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--brand-light</div>
+            <div class="text-[10px] text-[#b1ada1]">#fdf0eb</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#f4f3ee;border:1px solid #d8d2c8"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--bg</div>
+            <div class="text-[10px] text-[#b1ada1]">#f4f3ee</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#ece9e1;border:1px solid #d8d2c8"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--surface</div>
+            <div class="text-[10px] text-[#b1ada1]">#ece9e1</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#d8d2c8;border:1px solid #c8c2b8"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--border</div>
+            <div class="text-[10px] text-[#b1ada1]">#d8d2c8</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#b1ada1;border:1px solid #a8a49e"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--muted</div>
+            <div class="text-[10px] text-[#b1ada1]">#b1ada1</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#1e1e1c;border:1px solid #2a2a28"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--text</div>
+            <div class="text-[10px] text-[#b1ada1]">#1e1e1c</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Semantic colors -->
+      <div class="mb-8">
+        <div class="text-xs font-semibold uppercase tracking-widest text-[#b1ada1] mb-3">Semantic / Status</div>
+        <div class="token-grid">
+          <div>
+            <div class="swatch" style="background:#22c55e"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--success</div>
+            <div class="text-[10px] text-[#b1ada1]">#22c55e</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#ef4444"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--danger</div>
+            <div class="text-[10px] text-[#b1ada1]">#ef4444</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#f59e0b"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--warning</div>
+            <div class="text-[10px] text-[#b1ada1]">#f59e0b</div>
+          </div>
+          <div>
+            <div class="swatch" style="background:#3b82f6"></div>
+            <div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--info</div>
+            <div class="text-[10px] text-[#b1ada1]">#3b82f6</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dark palette -->
+      <div>
+        <div class="text-xs font-semibold uppercase tracking-widest text-[#b1ada1] mb-3">Dark Mode Palette</div>
+        <div class="token-grid">
+          <div><div class="swatch" style="background:#1a1a18"></div><div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--dark-bg</div><div class="text-[10px] text-[#b1ada1]">#1a1a18</div></div>
+          <div><div class="swatch" style="background:#222220"></div><div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--dark-surface</div><div class="text-[10px] text-[#b1ada1]">#222220</div></div>
+          <div><div class="swatch" style="background:#252420"></div><div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--dark-card</div><div class="text-[10px] text-[#b1ada1]">#252420</div></div>
+          <div><div class="swatch" style="background:#3a3835"></div><div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--dark-border</div><div class="text-[10px] text-[#b1ada1]">#3a3835</div></div>
+          <div><div class="swatch" style="background:#e8e5e0;border:1px solid #d8d2c8"></div><div class="text-[10px] font-mono mt-1.5 text-[#6b6560]">--dark-text</div><div class="text-[10px] text-[#b1ada1]">#e8e5e0</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ TYPOGRAPHY ══════════════ -->
+    <section id="typography" class="mt-16">
+      <div class="section-title">Typography</div>
+      <div class="section-sub">System font stack with a clear hierarchy. Hebrew and English share the same scale — RTL handled via <code class="text-[#c15f3c] text-xs">dir="rtl"</code> on text elements.</div>
+
+      <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl overflow-hidden">
+        <div class="type-scale-row px-5"><span style="font-size:30px;font-weight:700;line-height:1.2">Display 30/700</span><span class="text-[#b1ada1] text-xs">page titles</span></div>
+        <div class="type-scale-row px-5"><span style="font-size:22px;font-weight:700;line-height:1.3">Heading 22/700</span><span class="text-[#b1ada1] text-xs">section titles</span></div>
+        <div class="type-scale-row px-5"><span style="font-size:16px;font-weight:600;line-height:1.4">Title 16/600</span><span class="text-[#b1ada1] text-xs">card/panel headers</span></div>
+        <div class="type-scale-row px-5"><span style="font-size:14px;font-weight:500;line-height:1.5">Body 14/500</span><span class="text-[#b1ada1] text-xs">primary content</span></div>
+        <div class="type-scale-row px-5"><span style="font-size:13px;font-weight:400;line-height:1.5">Body 13/400</span><span class="text-[#b1ada1] text-xs">secondary content, labels</span></div>
+        <div class="type-scale-row px-5"><span style="font-size:11px;font-weight:400;line-height:1.5">Small 11/400</span><span class="text-[#b1ada1] text-xs">captions, metadata</span></div>
+        <div class="type-scale-row px-5 border-0"><span style="font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase">MICRO LABEL 9/600</span><span class="text-[#b1ada1] text-xs ml-4">section labels, tags</span></div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-xs font-semibold uppercase tracking-widest text-[#b1ada1] mb-2">Hebrew / RTL example</div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-5" dir="rtl">
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">מערכת תעתוק טראומה</div>
+          <div style="font-size:13px;color:#6b6560">מטופל מגיע, גבר 45, פגיעת ראש חמורה, ללא דופק בהגעה. זמן פגיעה משוער 18:32.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ SPACING ══════════════ -->
+    <section id="spacing" class="mt-16">
+      <div class="section-title">Spacing & Grid</div>
+      <div class="section-sub">4px base unit. 3-column equal-flex layout for the trauma room. Index uses a max-width content column.</div>
+      <div class="flex items-end gap-3 flex-wrap mb-6">
+        <div class="text-center"><div style="background:#c15f3c;height:4px;width:24px;border-radius:2px"></div><div class="text-[10px] text-[#b1ada1] mt-1">4px</div></div>
+        <div class="text-center"><div style="background:#c15f3c;height:8px;width:24px;border-radius:2px"></div><div class="text-[10px] text-[#b1ada1] mt-1">8px</div></div>
+        <div class="text-center"><div style="background:#c15f3c;height:12px;width:24px;border-radius:2px"></div><div class="text-[10px] text-[#b1ada1] mt-1">12px</div></div>
+        <div class="text-center"><div style="background:#c15f3c;height:16px;width:24px;border-radius:2px"></div><div class="text-[10px] text-[#b1ada1] mt-1">16px</div></div>
+        <div class="text-center"><div style="background:#c15f3c;height:24px;width:24px;border-radius:2px"></div><div class="text-[10px] text-[#b1ada1] mt-1">24px</div></div>
+        <div class="text-center"><div style="background:#c15f3c;height:32px;width:24px;border-radius:2px"></div><div class="text-[10px] text-[#b1ada1] mt-1">32px</div></div>
+        <div class="text-center"><div style="background:#c15f3c;height:48px;width:24px;border-radius:2px"></div><div class="text-[10px] text-[#b1ada1] mt-1">48px</div></div>
+      </div>
+      <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-5">
+        <div class="text-xs text-[#b1ada1] mb-3 font-semibold uppercase tracking-widest">Trauma Room Layout (3-panel flex)</div>
+        <div class="flex gap-2 h-20 text-[10px]">
+          <div class="flex-1 bg-[#fdf0eb] border-2 border-[#c15f3c] border-dashed rounded-lg flex items-center justify-center text-[#c15f3c] font-semibold">Protocol<br/><span class="font-normal opacity-60">flex:1</span></div>
+          <div class="flex-1 bg-[#ece9e1] dark:bg-[#2a2825] border border-[#d8d2c8] rounded-lg flex items-center justify-center text-[#6b6560] font-semibold">Transcript<br/><span class="font-normal opacity-60">flex:1</span></div>
+          <div class="flex-1 bg-[#fdf0eb] border-2 border-[#c15f3c] border-dashed rounded-lg flex items-center justify-center text-[#c15f3c] font-semibold">Summary<br/><span class="font-normal opacity-60">flex:1</span></div>
+        </div>
+        <div class="text-[10px] text-[#b1ada1] mt-2">Minimized panel → <code>flex: 0 0 40px</code> · Transition: <code>0.3s cubic-bezier(.4,0,.2,1)</code></div>
+      </div>
+    </section>
+
+    <!-- ══════════════ COMPONENTS UI — PRIMITIVES ══════════════ -->
+    <section id="comp-ui-primitives" class="mt-16">
+      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#ece9e1] dark:bg-[#2a2825] text-[9px] font-semibold uppercase tracking-wider text-[#6b6560] dark:text-[#9a9590] mb-3">src/components-ui/</div>
+      <div class="section-title">Components UI — Primitives</div>
+      <div class="section-sub">Generic, stateless, zero business logic. Consumed by every page. Exported from <code class="text-[#c15f3c] text-xs">components-ui/index.ts</code>. Never import page domain logic here.</div>
+
+      <!-- Button -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 mb-1">
+          <div class="text-sm font-semibold">Button</div>
+          <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">Button.tsx</code>
+        </div>
+        <div class="text-xs text-[#b1ada1] mb-3">4 variants + size prop + loading state. No routing logic — caller passes onClick.</div>
+        <div class="preview-box">
+          <button class="btn-primary">Primary</button>
+          <button class="btn-secondary">Secondary</button>
+          <button class="btn-ghost">Ghost</button>
+          <button class="btn-danger">Danger</button>
+          <button class="btn-primary" style="opacity:.5;cursor:not-allowed">Disabled</button>
+          <button class="btn-icon">+</button>
+        </div>
+        <div class="code-block"><span style="color:#93c5fd">interface</span> ButtonProps {
+  variant?: <span style="color:#86efac">'primary' | 'secondary' | 'ghost' | 'danger'</span>
+  size?: <span style="color:#86efac">'sm' | 'md' | 'lg'</span>
+  loading?: boolean
+  icon?: ReactNode
+  children: ReactNode
+}</div>
+      </div>
+
+      <!-- Badge -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 mb-1">
+          <div class="text-sm font-semibold">Badge</div>
+          <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">Badge.tsx</code>
+        </div>
+        <div class="text-xs text-[#b1ada1] mb-3">Semantic status chip. variant maps to color pair automatically.</div>
+        <div class="preview-box">
+          <span class="badge badge-live">● Live</span>
+          <span class="badge badge-signed">✓ Signed</span>
+          <span class="badge badge-draft">⏳ Draft</span>
+          <span class="badge badge-active">Active</span>
+          <span class="badge" style="background:#ece9e1;color:#6b6560">Idle</span>
+        </div>
+      </div>
+
+      <!-- Input + Toggle + Avatar row -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-semibold">Input</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">Input.tsx</code>
+          </div>
+          <input class="si-demo" placeholder="Patient name…"/>
+          <div style="margin-top:6px;display:flex;gap:8px">
+            <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="checkbox" style="accent-color:#c15f3c"/> Checkbox</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer"><input type="radio" name="dr" style="accent-color:#c15f3c"/> Radio</label>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-semibold">Toggle</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">Toggle.tsx</code>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <span style="width:36px;height:20px;border-radius:10px;background:#c15f3c;display:flex;align-items:center;padding:2px"><span style="width:16px;height:16px;border-radius:50%;background:#fff;margin-left:auto"></span></span>
+              Recording on
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <span style="width:36px;height:20px;border-radius:10px;background:#d8d2c8;display:flex;align-items:center;padding:2px"><span style="width:16px;height:16px;border-radius:50%;background:#fff"></span></span>
+              Recording off
+            </label>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-semibold">Avatar</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">Avatar.tsx</code>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <div style="width:32px;height:32px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">DC</div>
+            <div style="width:32px;height:32px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">NK</div>
+            <div style="width:32px;height:32px;border-radius:50%;background:#8b5cf6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">AK</div>
+            <div style="width:28px;height:28px;border-radius:50%;background:#ece9e1;border:1.5px dashed #b1ada1;display:flex;align-items:center;justify-content:center;color:#b1ada1;font-size:10px">+2</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spinner + SpeakerChip -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-semibold">Spinner</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">Spinner.tsx</code>
+          </div>
+          <div class="preview-box">
+            <div style="width:16px;height:16px;border:2px solid #d8d2c8;border-top-color:#c15f3c;border-radius:50%;animation:spin .7s linear infinite"></div>
+            <div style="width:22px;height:22px;border:2.5px solid #d8d2c8;border-top-color:#c15f3c;border-radius:50%;animation:spin .7s linear infinite"></div>
+            <div style="width:32px;height:32px;border:3px solid #d8d2c8;border-top-color:#c15f3c;border-radius:50%;animation:spin .7s linear infinite"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-semibold">SpeakerChip</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">SpeakerChip.tsx</code>
+          </div>
+          <div class="preview-box">
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block"></span>Cohen</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block"></span>Levi</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px"><span style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;display:inline-block"></span>Katz</span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block"></span>Ben</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ COMPONENTS UI — FEEDBACK ══════════════ -->
+    <section id="comp-ui-feedback" class="mt-16">
+      <div class="section-title">Components UI — Feedback</div>
+      <div class="section-sub">Overlay and notification primitives. All are portal-rendered, keyboard-accessible, and dark-mode aware.</div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <!-- Modal -->
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-xs font-semibold">Modal</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">Modal.tsx</code>
+          </div>
+          <div style="position:relative;background:#f4f3ee;border-radius:8px;overflow:hidden;min-height:110px;display:flex;align-items:center;justify-content:center">
+            <div style="position:absolute;inset:0;background:rgba(0,0,0,.25)"></div>
+            <div style="position:relative;background:#fff;border-radius:10px;padding:14px 18px;width:160px;box-shadow:0 8px 30px rgba(0,0,0,.15)">
+              <div style="font-size:11px;font-weight:600;margin-bottom:4px">Confirm sign-off?</div>
+              <div style="font-size:10px;color:#b1ada1;margin-bottom:10px">Locks the form permanently.</div>
+              <div style="display:flex;gap:6px">
+                <button class="btn-primary" style="font-size:10px;padding:4px 10px">Sign</button>
+                <button class="btn-secondary" style="font-size:10px;padding:4px 8px">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div class="text-[10px] text-[#b1ada1] mt-2">Props: <code class="text-[#c15f3c]">open</code>, <code class="text-[#c15f3c]">onClose</code>, <code class="text-[#c15f3c]">title</code>, <code class="text-[#c15f3c]">size</code>. Portal into body. Esc to close.</div>
+        </div>
+
+        <!-- Toast -->
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-xs font-semibold">Toast</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">Toast.tsx</code>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:8px 10px">
+              <span style="color:#22c55e">✓</span><span style="font-size:11px;color:#166534">Session saved successfully</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:8px 10px">
+              <span style="color:#ef4444">⚠</span><span style="font-size:11px;color:#991b1b">STT connection lost — retrying</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:#fdf0eb;border:1px solid #c15f3c;border-radius:8px;padding:8px 10px">
+              <span style="color:#c15f3c">ℹ</span><span style="font-size:11px;color:#a04e31">New transcript entry added</span>
+            </div>
+          </div>
+          <div class="text-[10px] text-[#b1ada1] mt-2">Stacks bottom-right. Auto-dismiss 4 s. Persists on hover.</div>
+        </div>
+      </div>
+
+      <!-- Skeleton -->
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <div class="text-sm font-semibold">Skeleton</div>
+          <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">Skeleton.tsx</code>
+        </div>
+        <div class="text-xs text-[#b1ada1] mb-3">Animated pulse placeholder. Replaces any content during data fetching. Matches component shape.</div>
+        <div class="preview-box" style="flex-direction:column;align-items:stretch;gap:8px">
+          <div style="height:14px;border-radius:6px;background:linear-gradient(90deg,#ece9e1 25%,#f4f3ee 50%,#ece9e1 75%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;width:60%"></div>
+          <div style="height:12px;border-radius:6px;background:linear-gradient(90deg,#ece9e1 25%,#f4f3ee 50%,#ece9e1 75%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;width:90%"></div>
+          <div style="height:12px;border-radius:6px;background:linear-gradient(90deg,#ece9e1 25%,#f4f3ee 50%,#ece9e1 75%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;width:75%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ COMPONENTS UI — DOMAIN MOLECULES ══════════════ -->
+    <section id="comp-ui-domain" class="mt-16">
+      <div class="section-title">Components UI — Domain Molecules</div>
+      <div class="section-sub">Composed from primitives. MedScript-specific context (transcripts, protocols, timers). Shared across pages but not generic enough for <code class="text-[#c15f3c] text-xs">components-ui/</code> — live in the page that owns them or in <code class="text-[#c15f3c] text-xs">shared/</code>.</div>
+
+      <!-- TranscriptEntry -->
+      <div class="mb-8">
+        <div class="flex items-center gap-2 mb-1">
+          <div class="text-sm font-semibold">TranscriptEntry</div>
+          <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">TranscriptEntry.tsx</code>
+          <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560]">pages/session/TranscriptPanel/</span>
+        </div>
+        <div class="text-xs text-[#b1ada1] mb-3">Speaker-colored left border. Timestamp toggles absolute↔relative. Keywords auto-highlighted.</div>
+        <div class="preview-box" style="flex-direction:column;align-items:stretch;background:white">
+          <div class="transcript-demo flex gap-3 py-2 px-2 rounded-lg" style="border-left-color:#3b82f6">
+            <button style="font-size:10px;font-family:monospace;color:#b1ada1;min-width:54px;text-align:left">18:42:05</button>
+            <div>
+              <div style="display:flex;gap:6px;align-items:baseline;margin-bottom:2px">
+                <span style="font-size:11px;font-weight:600;color:#3b82f6">Dr. Cohen</span>
+                <span style="font-size:9px;color:#b1ada1">Trauma Lead</span>
+              </div>
+              <div style="font-size:13px" dir="rtl">מתחילים <span class="kw-protocol">החייאה</span> — CPR! כולם לתפקידים.</div>
+            </div>
+          </div>
+          <div class="transcript-demo flex gap-3 py-2 px-2 rounded-lg" style="border-left-color:#8b5cf6">
+            <button style="font-size:10px;font-family:monospace;color:#b1ada1;min-width:54px;text-align:left">18:46:01</button>
+            <div>
+              <div style="display:flex;gap:6px;align-items:baseline;margin-bottom:2px">
+                <span style="font-size:11px;font-weight:600;color:#8b5cf6">Nurse Katz</span>
+                <span style="font-size:9px;color:#b1ada1">Med Nurse</span>
+              </div>
+              <div style="font-size:13px" dir="rtl"><span class="kw-timer">אדרנלין</span> 1 מ"ג ניתן תוך-ורידי.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TimerCard + ProtocolStep -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-semibold">TimerCard</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">TimerCard.tsx</code>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560]">pages/session/</span>
+          </div>
+          <div class="text-xs text-[#b1ada1] mb-2">Countdown spawned by keyword. Bar red at &lt;25%. Web Audio bell on expiry.</div>
+          <div class="timer-demo">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+              <div><div style="font-size:8px;color:#b1ada1;text-transform:uppercase">Next dose</div><div style="font-size:12px;font-weight:600">Adrenaline</div></div>
+              <button style="color:#b1ada1;font-size:12px;background:none;border:none;cursor:pointer">✕</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;height:5px;background:#ece9e1;border-radius:3px;overflow:hidden"><div style="width:65%;height:100%;background:#c15f3c;border-radius:3px"></div></div>
+              <div style="font-size:16px;font-weight:700;font-family:monospace;color:#c15f3c;min-width:42px;text-align:right">02:36</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-semibold">FlowNode (ProtocolStep)</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">FlowNode.tsx</code>
+          </div>
+          <div class="text-xs text-[#b1ada1] mb-2">Click to toggle. Done: green + strikethrough. Shock node: warning color.</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div class="proto-step">
+              <div class="step-check done"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div><div style="font-size:11px;text-decoration:line-through;color:#b1ada1">Start compressions 100–120/min</div></div>
+            </div>
+            <div class="proto-step">
+              <div class="step-check"></div>
+              <div><div style="font-size:11px">Establish IV/IO access</div></div>
+            </div>
+            <div class="proto-step" style="background:#fef3c7;border-color:#fcd34d">
+              <div class="step-check" style="border-color:#f59e0b"></div>
+              <div><div style="font-size:11px;color:#92400e;font-weight:600">⚡ SHOCK — Defibrillate</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AudioWaveform + StatCard -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-semibold">AudioWaveform</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">AudioWaveform.tsx</code>
+          </div>
+          <div class="text-xs text-[#b1ada1] mb-2">Canvas live waveform. Shared between <code class="text-[#c15f3c]">RecordingControls</code> and <code class="text-[#c15f3c]">WaveformDisplay</code>.</div>
+          <div class="preview-box" style="justify-content:center;align-items:flex-end;gap:2px;height:52px;background:#1e1e1c">
+            <div class="wv-host" style="display:flex;align-items:flex-end;gap:2px"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-sm font-semibold">StatCard</div>
+            <code class="text-[9px] bg-[#ece9e1] dark:bg-[#2a2825] px-2 py-0.5 rounded text-[#c15f3c]">StatCard.tsx</code>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#ece9e1] dark:bg-[#2a2825] text-[#6b6560]">pages/dashboard/</span>
+          </div>
+          <div class="text-xs text-[#b1ada1] mb-2">KPI display. Props: <code class="text-[#c15f3c]">label</code>, <code class="text-[#c15f3c]">value</code>, <code class="text-[#c15f3c]">icon</code>, <code class="text-[#c15f3c]">variant</code>.</div>
+          <div class="preview-box" style="gap:8px">
+            <div class="stat-demo"><div style="font-size:20px;margin-bottom:4px">📋</div><div style="font-size:20px;font-weight:700">12</div><div style="font-size:10px;color:#b1ada1">Total</div></div>
+            <div class="stat-demo" style="background:#f0fdf4;border-color:#86efac"><div style="font-size:20px;margin-bottom:4px">✅</div><div style="font-size:20px;font-weight:700;color:#16a34a">10</div><div style="font-size:10px;color:#16a34a">Signed</div></div>
+            <div class="stat-demo" style="background:#fefce8;border-color:#fde047"><div style="font-size:20px;margin-bottom:4px">⏳</div><div style="font-size:20px;font-weight:700;color:#ca8a04">2</div><div style="font-size:10px;color:#ca8a04">Unsigned</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- PAGES                                                          -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+
+    <!-- ── Auth ── -->
+    <section id="page-auth" class="mt-16">
+      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#ece9e1] dark:bg-[#2a2825] text-[9px] font-semibold uppercase tracking-wider text-[#6b6560] dark:text-[#9a9590] mb-3">src/pages/</div>
+      <div class="section-title">Pages — Auth</div>
+      <div class="section-sub">Login and Register share a single <code class="text-[#c15f3c] text-xs">AuthLayout</code> wrapper. Full-screen centered card, no app nav. Guest-only routes: redirect to <code class="text-[#c15f3c] text-xs">/</code> if already authenticated.</div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl overflow-hidden">
+          <div class="px-4 py-2.5 border-b border-[#d8d2c8] dark:border-[#3a3835] flex items-center gap-2">
+            <span class="text-xs font-semibold">LoginPage</span>
+            <code class="text-[9px] bg-[#fdf0eb] text-[#c15f3c] px-1.5 py-0.5 rounded">/login</code>
+          </div>
+          <div style="background:#f4f3ee;display:flex;align-items:center;justify-content:center;padding:20px;min-height:180px">
+            <div style="background:#fff;border:1px solid #d8d2c8;border-radius:12px;padding:18px;width:200px;box-shadow:0 4px 20px rgba(0,0,0,.07)">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px">
+                <div style="width:22px;height:22px;border-radius:6px;background:#c15f3c;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">M</div>
+                <span style="font-size:13px;font-weight:700">MedScript</span>
+              </div>
+              <input class="si-demo" placeholder="Email" style="margin-bottom:6px;font-size:11px"/>
+              <input class="si-demo" type="password" placeholder="Password" style="margin-bottom:10px;font-size:11px"/>
+              <button class="btn-primary" style="width:100%;font-size:11px">Sign in</button>
+              <div style="font-size:10px;color:#b1ada1;text-align:center;margin-top:8px">No account? <a style="color:#c15f3c;cursor:pointer">Register</a></div>
+            </div>
+          </div>
+          <div class="px-4 py-2 border-t border-[#d8d2c8] dark:border-[#3a3835] text-[10px] text-[#b1ada1]">
+            Co-located: <code class="text-[#c15f3c]">AuthLayout</code> · <code class="text-[#c15f3c]">LoginForm</code>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl overflow-hidden">
+          <div class="px-4 py-2.5 border-b border-[#d8d2c8] dark:border-[#3a3835] flex items-center gap-2">
+            <span class="text-xs font-semibold">RegisterPage</span>
+            <code class="text-[9px] bg-[#fdf0eb] text-[#c15f3c] px-1.5 py-0.5 rounded">/register</code>
+          </div>
+          <div style="background:#f4f3ee;display:flex;align-items:center;justify-content:center;padding:20px;min-height:180px">
+            <div style="background:#fff;border:1px solid #d8d2c8;border-radius:12px;padding:18px;width:200px;box-shadow:0 4px 20px rgba(0,0,0,.07)">
+              <div style="font-size:12px;font-weight:700;margin-bottom:10px">Create account</div>
+              <input class="si-demo" placeholder="Full name" style="margin-bottom:5px;font-size:11px"/>
+              <input class="si-demo" placeholder="Hospital" style="margin-bottom:5px;font-size:11px"/>
+              <select class="si-demo" style="margin-bottom:5px;font-size:11px"><option>Role…</option><option>trauma_lead</option><option>nurse</option></select>
+              <input class="si-demo" placeholder="Email" style="margin-bottom:5px;font-size:11px"/>
+              <input class="si-demo" type="password" placeholder="Password" style="margin-bottom:10px;font-size:11px"/>
+              <button class="btn-primary" style="width:100%;font-size:11px">Register</button>
+            </div>
+          </div>
+          <div class="px-4 py-2 border-t border-[#d8d2c8] dark:border-[#3a3835] text-[10px] text-[#b1ada1]">
+            Co-located: <code class="text-[#c15f3c]">AuthLayout</code> · <code class="text-[#c15f3c]">RegisterForm</code>
+          </div>
+        </div>
+      </div>
+      <div class="code-block">
+<span style="color:#e8855e">pages/auth/</span>
+├── LoginPage.tsx               <span style="color:#6b7280">← form submit → auth.store → navigate('/')</span>
+├── RegisterPage.tsx
+└── <span style="color:#e8855e">components/</span>                 <span style="color:#6b7280">← co-located, not imported outside pages/auth/</span>
+    ├── AuthLayout.tsx          <span style="color:#6b7280">← centered full-screen card + logo</span>
+    ├── LoginForm.tsx           <span style="color:#6b7280">← email + password, react-hook-form + zod</span>
+    └── RegisterForm.tsx        <span style="color:#6b7280">← name, hospital, role select, email, password</span>
+      </div>
+    </section>
+
+    <!-- ── Dashboard ── -->
+    <section id="page-dashboard" class="mt-16">
+      <div class="section-title">Pages — Dashboard</div>
+      <div class="section-sub">Incident history with filterable table and KPI stat cards. Main landing page after login. Maps to the <code class="text-[#c15f3c] text-xs">index.html</code> prototype.</div>
+
+      <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl overflow-hidden mb-4">
+        <div style="background:#f4f3ee;border-bottom:1px solid #d8d2c8;padding:8px 14px;display:flex;align-items:center;gap:8px">
+          <div style="width:18px;height:18px;border-radius:5px;background:#c15f3c;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700">M</div>
+          <span style="font-size:11px;font-weight:600">MedScript</span>
+          <div style="flex:1"></div>
+          <span style="font-size:9px;background:#fefce8;color:#ca8a04;padding:2px 8px;border-radius:99px">Unsigned: 2</span>
+          <button class="btn-primary" style="font-size:9px;padding:3px 8px">+ New Session</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px;border-bottom:1px solid #d8d2c8">
+          <div style="background:#f4f3ee;border-radius:8px;padding:10px;text-align:center"><div style="font-size:15px;font-weight:700">12</div><div style="font-size:9px;color:#b1ada1">Total</div></div>
+          <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px;text-align:center"><div style="font-size:15px;font-weight:700;color:#16a34a">10</div><div style="font-size:9px;color:#16a34a">Signed</div></div>
+          <div style="background:#fefce8;border:1px solid #fde047;border-radius:8px;padding:10px;text-align:center"><div style="font-size:15px;font-weight:700;color:#ca8a04">2</div><div style="font-size:9px;color:#ca8a04">Unsigned</div></div>
+          <div style="background:#fdf0eb;border:1px solid #c15f3c;border-radius:8px;padding:10px;text-align:center"><div style="font-size:15px;font-weight:700;color:#c15f3c">1</div><div style="font-size:9px;color:#c15f3c">Live now</div></div>
+        </div>
+        <div style="padding:0 14px 10px">
+          <div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #ece9e1;align-items:center">
+            <input class="si-demo" placeholder="Search…" style="width:110px;font-size:10px"/>
+            <select class="si-demo" style="width:100px;font-size:10px"><option>All status</option><option>Signed</option><option>Draft</option></select>
+          </div>
+          <div style="font-size:9px;color:#b1ada1;display:grid;grid-template-columns:1.5fr 1fr 1fr 60px 80px 60px;gap:4px;padding:6px 0;border-bottom:1px solid #ece9e1;font-weight:600;text-transform:uppercase;letter-spacing:.05em">
+            <span>Date</span><span>Incident ID</span><span>Trauma Type</span><span>Duration</span><span>Status</span><span></span>
+          </div>
+          <div style="font-size:10px;display:grid;grid-template-columns:1.5fr 1fr 1fr 60px 80px 60px;gap:4px;padding:5px 0;border-bottom:1px solid #ece9e1;align-items:center">
+            <span>2026-05-19</span><span style="font-family:monospace">#TRK-0042</span><span>Cardiac Arrest</span><span>18 min</span>
+            <span class="badge badge-signed" style="font-size:9px">✓ Signed</span>
+            <button class="btn-ghost" style="font-size:9px;padding:2px 6px">View</button>
+          </div>
+          <div style="font-size:10px;display:grid;grid-template-columns:1.5fr 1fr 1fr 60px 80px 60px;gap:4px;padding:5px 0;align-items:center">
+            <span>2026-05-18</span><span style="font-family:monospace">#TRK-0041</span><span>Polytrauma</span><span>32 min</span>
+            <span class="badge badge-draft" style="font-size:9px">⏳ Draft</span>
+            <button class="btn-primary" style="font-size:9px;padding:2px 6px">Sign</button>
+          </div>
+        </div>
+      </div>
+      <div class="code-block">
+<span style="color:#e8855e">pages/dashboard/</span>
+├── DashboardPage.tsx           <span style="color:#6b7280">← fetches incidents list, owns filter state</span>
+└── <span style="color:#e8855e">components/</span>
+    ├── StatCard.tsx            <span style="color:#6b7280">← reused ×4, props: label, value, variant, icon</span>
+    ├── FilterBar.tsx           <span style="color:#6b7280">← search input + status select + date range</span>
+    ├── IncidentTable.tsx       <span style="color:#6b7280">← sortable columns, maps rows to IncidentRow</span>
+    ├── IncidentRow.tsx         <span style="color:#6b7280">← single row, emits onOpen / onSign</span>
+    └── IncidentDetailModal.tsx <span style="color:#6b7280">← wraps Modal UI, shows summary + sign CTA</span>
+      </div>
+    </section>
+
+    <!-- ── Session ── -->
+    <section id="page-session" class="mt-16">
+      <div class="section-title">Pages — Session Room</div>
+      <div class="section-sub">The core live trauma page. Three resizable panels in a flex row. Each panel is its own sub-folder with its own sub-components. Maps to the <code class="text-[#c15f3c] text-xs">room.html</code> prototype.</div>
+
+      <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4 mb-4">
+        <div class="text-[10px] text-[#b1ada1] mb-3 font-semibold uppercase tracking-widest">SessionPage layout</div>
+        <div style="background:#f4f3ee;border:1px solid #d8d2c8;border-radius:6px;padding:6px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;font-size:10px">
+          <span class="badge badge-live" style="font-size:9px">● Live</span>
+          <span style="font-weight:600">#TRK-0043 · Cardiac Arrest</span>
+          <div style="flex:1"></div>
+          <span style="font-family:monospace;color:#c15f3c;font-weight:700">00:18:42</span>
+          <button class="btn-danger" style="font-size:9px;padding:3px 8px">End Session</button>
+        </div>
+        <div style="display:flex;gap:6px;height:130px">
+          <div style="flex:1;background:#fdf0eb;border:2px dashed #c15f3c;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px;padding:8px">
+            <div style="font-size:10px;font-weight:700;color:#c15f3c">ProtocolPanel</div>
+            <div style="font-size:9px;color:#b1ada1">ACLSFlowchart</div>
+            <div style="font-size:9px;color:#b1ada1">FlowNode ×n</div>
+          </div>
+          <div style="flex:1;background:#eff6ff;border:2px dashed #3b82f6;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px;padding:8px">
+            <div style="font-size:10px;font-weight:700;color:#3b82f6">TranscriptPanel</div>
+            <div style="font-size:9px;color:#b1ada1">RecordingControls</div>
+            <div style="font-size:9px;color:#b1ada1">TranscriptEntry ×n</div>
+          </div>
+          <div style="flex:1;background:#f0fdf4;border:2px dashed #22c55e;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px;padding:8px">
+            <div style="font-size:10px;font-weight:700;color:#16a34a">SummaryPanel</div>
+            <div style="font-size:9px;color:#b1ada1">MoHForm</div>
+            <div style="font-size:9px;color:#b1ada1">SignBlock</div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:#b1ada1;margin-top:6px">Minimized panel → <code style="font-size:9px">flex: 0 0 40px</code> · Collapse transition: 0.3s cubic-bezier(.4,0,.2,1)</div>
+      </div>
+      <div class="code-block">
+<span style="color:#e8855e">pages/session/</span>
+├── SessionPage.tsx             <span style="color:#6b7280">← owns panel resize state, connects session.store</span>
+└── <span style="color:#e8855e">components/</span>
+    ├── SessionHeader.tsx       <span style="color:#6b7280">← live badge, incident ID, elapsed timer, End btn</span>
+    ├── PanelShell.tsx          <span style="color:#6b7280">← collapsible flex wrapper, collapse/expand button</span>
+    ├── <span style="color:#e8855e">ProtocolPanel/</span>
+    │   ├── index.tsx           <span style="color:#6b7280">← panel entry, protocol selector (ACLS/PALS/BLS)</span>
+    │   ├── ACLSFlowchart.tsx   <span style="color:#6b7280">← renders flow graph from protocol definition</span>
+    │   └── FlowNode.tsx        <span style="color:#6b7280">← single clickable node (action/decision/shock)</span>
+    ├── <span style="color:#e8855e">TranscriptPanel/</span>
+    │   ├── index.tsx           <span style="color:#6b7280">← WS consumer, owns entries via session.store</span>
+    │   ├── TranscriptEntry.tsx <span style="color:#6b7280">← speaker row with keyword highlighting</span>
+    │   └── RecordingControls.tsx <span style="color:#6b7280">← mic on/off, speaker legend, AudioWaveform</span>
+    └── <span style="color:#e8855e">SummaryPanel/</span>
+        ├── index.tsx           <span style="color:#6b7280">← wraps form, triggers Claude auto-fill on close</span>
+        ├── MoHForm.tsx         <span style="color:#6b7280">← Ministry of Health Appendix Z field structure</span>
+        └── SignBlock.tsx       <span style="color:#6b7280">← sign-off confirm modal, locks all fields</span>
+      </div>
+    </section>
+
+    <!-- ── Voice Stamp ── -->
+    <section id="page-voice-stamp" class="mt-16">
+      <div class="section-title">Pages — Voice Stamp</div>
+      <div class="section-sub">Doctors record a 3–5 s voice sample used by SONIOX to identify their speaker index automatically in every session. Recorded once per user on setup or from Settings.</div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl overflow-hidden">
+          <div class="px-4 py-2.5 border-b border-[#d8d2c8] dark:border-[#3a3835] flex items-center gap-2">
+            <span class="text-xs font-semibold">VoiceStampPage</span>
+            <code class="text-[9px] bg-[#fdf0eb] text-[#c15f3c] px-1.5 py-0.5 rounded">/voice-stamp</code>
+          </div>
+          <div style="padding:18px;display:flex;flex-direction:column;gap:10px;align-items:center">
+            <div style="background:#1e1e1c;border-radius:8px;width:100%;height:48px;display:flex;align-items:center;justify-content:center;gap:2px">
+              <div class="wv-host" style="display:flex;align-items:flex-end;gap:2px"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn-danger" style="font-size:11px;padding:6px 12px">● Record</button>
+              <button class="btn-secondary" style="font-size:11px">▶ Play</button>
+              <button class="btn-ghost" style="font-size:11px">↻ Retry</button>
+            </div>
+            <button class="btn-primary" style="font-size:11px;width:100%">Save Voice Stamp</button>
+          </div>
+          <div class="px-4 py-2 border-t border-[#d8d2c8] dark:border-[#3a3835] text-[10px] text-[#b1ada1]">
+            Co-located: <code class="text-[#c15f3c]">VoiceRecorder</code> · <code class="text-[#c15f3c]">WaveformDisplay</code> · <code class="text-[#c15f3c]">StampCard</code>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="text-xs font-semibold mb-3">How voice stamps work</div>
+          <div class="space-y-2 text-[11px] text-[#6b6560] dark:text-[#9a9590]">
+            <div class="flex gap-2"><span class="text-[#c15f3c] font-bold shrink-0">1.</span>Doctor records 3 s phrase on account setup</div>
+            <div class="flex gap-2"><span class="text-[#c15f3c] font-bold shrink-0">2.</span>Stamp audio uploaded to Supabase Storage</div>
+            <div class="flex gap-2"><span class="text-[#c15f3c] font-bold shrink-0">3.</span>Backend enrolls stamp with SONIOX speaker ID API</div>
+            <div class="flex gap-2"><span class="text-[#c15f3c] font-bold shrink-0">4.</span>During sessions, SONIOX diarizes by that speaker ID</div>
+            <div class="flex gap-2"><span class="text-[#c15f3c] font-bold shrink-0">5.</span>Transcript entries auto-tagged with doctor's name</div>
+          </div>
+        </div>
+      </div>
+      <div class="code-block">
+<span style="color:#e8855e">pages/voice-stamp/</span>
+├── VoiceStampPage.tsx          <span style="color:#6b7280">← record → upload → enroll flow</span>
+└── <span style="color:#e8855e">components/</span>
+    ├── VoiceRecorder.tsx       <span style="color:#6b7280">← MediaRecorder API, countdown, blob output</span>
+    ├── WaveformDisplay.tsx     <span style="color:#6b7280">← AudioWaveform wrapper + record state ring</span>
+    └── StampCard.tsx           <span style="color:#6b7280">← existing stamp preview + re-record CTA</span>
+      </div>
+    </section>
+
+    <!-- ── Settings ── -->
+    <section id="page-settings" class="mt-16">
+      <div class="section-title">Pages — Settings</div>
+      <div class="section-sub">User profile, voice stamp management, notification preferences, and team access (admin-only tab). Tabbed layout with each tab as its own component.</div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div class="bg-white dark:bg-[#222220] border border-[#c15f3c]/40 rounded-xl p-3">
+          <div class="text-xs font-semibold mb-1.5">ProfileForm</div>
+          <div class="text-[10px] text-[#b1ada1] leading-relaxed">Name, email, role, avatar upload, change password.</div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-3">
+          <div class="text-xs font-semibold mb-1.5">VoiceStampManager</div>
+          <div class="text-[10px] text-[#b1ada1] leading-relaxed">Preview stamp, re-record, delete. Links to <code class="text-[#c15f3c]">/voice-stamp</code>.</div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-3">
+          <div class="text-xs font-semibold mb-1.5">NotificationPrefs</div>
+          <div class="text-[10px] text-[#b1ada1] leading-relaxed">Toggle: STT errors, unsigned reminders, new session alerts.</div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-3">
+          <div class="text-xs font-semibold mb-1.5">TeamSection</div>
+          <div class="text-[10px] text-[#b1ada1] leading-relaxed">Admin-only: invite / remove hospital team members, change roles.</div>
+        </div>
+      </div>
+      <div class="code-block">
+<span style="color:#e8855e">pages/settings/</span>
+├── SettingsPage.tsx            <span style="color:#6b7280">← tabbed layout: Profile / Voice / Notifications / Team</span>
+└── <span style="color:#e8855e">components/</span>
+    ├── ProfileForm.tsx         <span style="color:#6b7280">← react-hook-form, avatar upload to Supabase Storage</span>
+    ├── VoiceStampManager.tsx   <span style="color:#6b7280">← current stamp card, re-record CTA</span>
+    ├── NotificationPrefs.tsx   <span style="color:#6b7280">← Toggle list, saves to user preferences via API</span>
+    └── TeamSection.tsx         <span style="color:#6b7280">← admin-only: invite flow + role change + revoke</span>
+      </div>
+    </section>
+
+    <!-- ── Patient Lookup ── -->
+    <section id="page-patient-lookup" class="mt-16">
+      <div class="section-title">Pages — Patient Lookup</div>
+      <div class="section-sub">Search past patients by name or ID. Select a patient to pre-fill their demographics into a new session. Saves intake time at the start of a trauma event.</div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="text-xs font-semibold mb-3">PatientSearchBar + PatientCard</div>
+          <input class="si-demo" placeholder="Patient name or ID…" style="margin-bottom:10px"/>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #d8d2c8;border-radius:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;flex-shrink:0">AC</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:11px;font-weight:600">אבי כהן</div>
+                <div style="font-size:9px;color:#b1ada1">ID: 043-21-9881 · M 45 · Last: 2026-05-10</div>
+              </div>
+              <button class="btn-ghost" style="font-size:9px;padding:3px 8px;flex-shrink:0">Use</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #d8d2c8;border-radius:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;flex-shrink:0">RG</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:11px;font-weight:600">רחל גולדברג</div>
+                <div style="font-size:9px;color:#b1ada1">ID: 028-55-4401 · F 62 · Last: 2026-04-28</div>
+              </div>
+              <button class="btn-ghost" style="font-size:9px;padding:3px 8px;flex-shrink:0">Use</button>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="text-xs font-semibold mb-3">PatientHistoryList</div>
+          <div class="text-[10px] text-[#b1ada1] mb-3">Past incidents for selected patient — click to open full session summary.</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="font-size:10px;display:flex;justify-content:space-between;align-items:center;padding:7px 8px;background:#f4f3ee;border-radius:6px">
+              <span>2026-05-10 · Cardiac Arrest · 22 min</span>
+              <span class="badge badge-signed" style="font-size:9px">✓</span>
+            </div>
+            <div style="font-size:10px;display:flex;justify-content:space-between;align-items:center;padding:7px 8px;background:#f4f3ee;border-radius:6px">
+              <span>2025-11-03 · Head Trauma · 41 min</span>
+              <span class="badge badge-signed" style="font-size:9px">✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="code-block">
+<span style="color:#e8855e">pages/patient-lookup/</span>
+├── PatientLookupPage.tsx       <span style="color:#6b7280">← search state, selected patient, "use in session"</span>
+└── <span style="color:#e8855e">components/</span>
+    ├── PatientSearchBar.tsx    <span style="color:#6b7280">← debounced search, hits GET /patients?q=</span>
+    ├── PatientCard.tsx         <span style="color:#6b7280">← avatar, name, ID, age, last-seen + Use CTA</span>
+    └── PatientHistoryList.tsx  <span style="color:#6b7280">← incident list for selected patient</span>
+      </div>
+    </section>
+
+    <!-- ── Admin ── -->
+    <section id="page-admin" class="mt-16">
+      <div class="section-title">Pages — Admin</div>
+      <div class="section-sub">Hospital-level analytics, team management, and data export. Route-guarded to <code class="text-[#c15f3c] text-xs">role === 'admin'</code> — React Router redirects all other roles to <code class="text-[#c15f3c] text-xs">/</code>.</div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="text-xs font-semibold mb-1.5">UsageChart</div>
+          <div class="text-[10px] text-[#b1ada1] leading-relaxed">Sessions per day/week bar chart. Avg session duration. STT minutes consumed. Canvas-rendered.</div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="text-xs font-semibold mb-1.5">TeamTable</div>
+          <div class="text-[10px] text-[#b1ada1] leading-relaxed">All hospital users. Columns: name, role, last login, voice stamp status. Invite / revoke access.</div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="text-xs font-semibold mb-1.5">ExportPanel</div>
+          <div class="text-[10px] text-[#b1ada1] leading-relaxed">Date-range picker + format toggle (CSV / PDF). Triggers <code class="text-[#c15f3c]">GET /incidents/export</code> on backend.</div>
+        </div>
+      </div>
+      <div class="code-block">
+<span style="color:#e8855e">pages/admin/</span>
+├── AdminPage.tsx               <span style="color:#6b7280">← role guard: useAuth() → redirect non-admins to /</span>
+└── <span style="color:#e8855e">components/</span>
+    ├── UsageChart.tsx          <span style="color:#6b7280">← canvas bar chart, date-range selector</span>
+    ├── TeamTable.tsx           <span style="color:#6b7280">← user list + invite flow + role change</span>
+    └── ExportPanel.tsx         <span style="color:#6b7280">← date picker, format toggle, download trigger</span>
+      </div>
+    </section>
+
+    <!-- ══════════════ SYSTEM ARCHITECTURE ══════════════ -->
+    <section id="system-arch" class="mt-16">
+      <div class="section-title">System Architecture</div>
+      <div class="section-sub">Two-service split: React SPA on any CDN (UI only) + dedicated backend on <strong>Render</strong> (auth, API, WebSocket proxy). All secret keys live exclusively on Render — the browser never touches them.</div>
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+graph TB
+  subgraph Client["🖥️  Browser — React SPA"]
+    UI[Session Room\nDashboard · Admin]
+    WSClient[WS Client\nconnects to Render]
+    Store[Zustand Store\nauth · session · theme]
+  end
+
+  subgraph Render["⚙️  Render — Backend Server"]
+    AuthSvc[Auth Service\nJWT issue / verify]
+    RestAPI[REST API\nincidents · summaries]
+    WSProxy[WebSocket Proxy\nSONIOX bridge]
+    ClaudeSvc[Claude Service\nauto-summary]
+  end
+
+  subgraph ExtAPI["🌐  External APIs  — keys only on Render"]
+    Soniox[SONIOX\nSpeech-to-Text WS]
+    ClaudeAPI[Claude API\nAuto-Summary]
+  end
+
+  subgraph Data["🗄️  Data Layer"]
+    Postgres[(Supabase\nPostgreSQL\nusers · incidents · summaries)]
+    Mongo[(MongoDB\nTranscript chunks\nTimestamped entries)]
+    Storage[Supabase Storage\nAudio files / audit]
+  end
+
+  UI -->|REST + Bearer JWT| RestAPI
+  UI -->|Login / Logout| AuthSvc
+  AuthSvc -->|JWT| Store
+  Store -->|Bearer header| RestAPI
+  WSClient <-->|WS — incident room| WSProxy
+  WSProxy <-->|Secure WS + SONIOX key| Soniox
+  WSProxy -->|Parsed chunks| Mongo
+  WSProxy -->|Broadcast chunks| WSClient
+  RestAPI -->|Incidents / Summaries| Postgres
+  RestAPI -->|Trigger summary| ClaudeSvc
+  ClaudeSvc -->|Transcript context| Mongo
+  ClaudeSvc <-->|Structured output| ClaudeAPI
+  ClaudeSvc -->|Filled form data| Postgres
+  RestAPI --> Storage
+        </pre>
+      </div>
+
+      <!-- Deployment badges -->
+      <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-3 text-center">
+          <div class="text-lg mb-1">⚛️</div>
+          <div class="text-xs font-semibold">React SPA</div>
+          <div class="text-[9px] text-[#b1ada1] mt-0.5">Any CDN (Vercel / S3)</div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-3 text-center">
+          <div class="text-lg mb-1">🎛</div>
+          <div class="text-xs font-semibold">Render</div>
+          <div class="text-[9px] text-[#b1ada1] mt-0.5">Backend API + WS</div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-3 text-center">
+          <div class="text-lg mb-1">🐘</div>
+          <div class="text-xs font-semibold">Supabase</div>
+          <div class="text-[9px] text-[#b1ada1] mt-0.5">PostgreSQL + Storage</div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-3 text-center">
+          <div class="text-lg mb-1">🍃</div>
+          <div class="text-xs font-semibold">MongoDB</div>
+          <div class="text-[9px] text-[#b1ada1] mt-0.5">Transcript storage</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ AUTH FLOW ══════════════ -->
+    <section id="auth-flow" class="mt-16">
+      <div class="section-title">Authentication Flow</div>
+      <div class="section-sub">Auth lives entirely on the <strong>Render backend</strong>. The React SPA uses a <code class="text-[#c15f3c] text-xs">useAuth()</code> hook + Zustand <code class="text-[#c15f3c] text-xs">auth.store</code> to guard routes client-side — the backend verifies the JWT on every API call. Roles: <code class="text-[#c15f3c] text-xs">admin · trauma_lead · nurse · paramedic · viewer</code></div>
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+sequenceDiagram
+  actor User
+  participant Browser as Browser (React SPA)
+  participant Store as auth.store (Zustand)
+  participant Backend as Render Backend
+  participant DB as Supabase PostgreSQL
+
+  Note over User,DB: ── Login ──
+  User->>Browser: Submit LoginForm (email + password)
+  Browser->>Backend: POST /auth/login
+  Backend->>DB: SELECT user WHERE email = ?
+  DB-->>Backend: user row + hashed password
+  Backend->>Backend: bcrypt.verify(password, hash)
+  Backend-->>Browser: { jwt, user, role }
+  Browser->>Store: auth.store.setUser({ jwt, user, role })
+  Store->>Browser: navigate('/')
+
+  Note over User,DB: ── Protected route ──
+  User->>Browser: Navigate to /session/:id
+  Browser->>Store: useAuth() reads auth.store
+  alt token present
+    Store-->>Browser: render SessionPage
+    Browser->>Backend: GET /incidents/:id (Bearer JWT)
+    Backend->>Backend: verify JWT signature
+    Backend-->>Browser: incident data
+  else no token
+    Store-->>Browser: navigate('/login')
+  end
+
+  Note over User,DB: ── WebSocket auth ──
+  Browser->>Backend: WS /ws/room/:id?token=JWT
+  Backend->>Backend: Verify JWT before upgrading
+  Backend-->>Browser: WS connection open
+        </pre>
+      </div>
+
+      <!-- Role table -->
+      <div class="mt-5 bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl overflow-hidden">
+        <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr] text-[10px] px-4 py-2 border-b border-[#d8d2c8] dark:border-[#3a3835] bg-[#f4f3ee] dark:bg-[#252420] font-semibold uppercase tracking-widest text-[#b1ada1]">
+          <div>Role</div><div>View History</div><div>Open Room</div><div>Transcribe</div><div>Sign Summary</div><div>Admin</div>
+        </div>
+        <div id="role-table"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════ DATA FLOW ══════════════ -->
+    <section id="data-flow" class="mt-16">
+      <div class="section-title">Data Pipeline</div>
+      <div class="section-sub">Audio captured in browser → Render proxies it to SONIOX → chunks saved to MongoDB → on incident close the backend calls Claude → fills Supabase summary → nurse signs → PDF.</div>
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+flowchart TD
+  subgraph Browser["🖥️ Browser"]
+    MIC[🎙️ Microphone] --> WSC[WS Client]
+    WSC -->|chunks| KW{Keyword\nDetector}
+    KW -->|CPR/החייאה| PROTO[📋 Open Protocol]
+    KW -->|אדרנלין| TIMER[⏱️ Spawn Timer]
+    KW -->|all| FORM[📝 Pre-fill Form]
+  end
+
+  subgraph Render["⚙️ Render Backend"]
+    WSP[WS Proxy] -->|SONIOX key| SONIOX[SONIOX API]
+    SONIOX -->|diarized text| WSP
+    WSP -->|broadcast| WSC
+    WSP -->|save chunk| MONGO
+    CLOSE[POST /incidents/:id/close] --> CLAUDE[Claude Service]
+    CLAUDE -->|read context| MONGO
+    CLAUDE -->|structured form| PG
+  end
+
+  subgraph Data["🗄️ Data"]
+    MONGO[(MongoDB\nTranscript Chunks)]
+    PG[(Supabase\nPostgreSQL)]
+  end
+
+  FORM -->|user edits| SIGN{Nurse\nSigns}
+  SIGN -->|PUT /summaries/:id/sign| PG
+  PG --> PDF[📄 PDF Export]
+        </pre>
+      </div>
+    </section>
+
+    <!-- ══════════════ DATABASE ══════════════ -->
+    <section id="database" class="mt-16">
+      <div class="section-title">Database Schema</div>
+      <div class="section-sub"><strong>Supabase / PostgreSQL</strong> for structured data (users, incidents, summaries). <strong>MongoDB</strong> for transcript chunks — document model fits variable-length, high-frequency writes better than SQL rows.</div>
+      <div class="mermaid-wrap">
+        <pre class="mermaid">
+erDiagram
+  hospitals {
+    uuid id PK
+    text name
+    text city
+    timestamp created_at
+  }
+
+  users {
+    uuid id PK
+    uuid hospital_id FK
+    text email
+    text name
+    text role
+    timestamp created_at
+  }
+
+  incidents {
+    uuid id PK
+    uuid hospital_id FK
+    uuid created_by FK
+    text room_name
+    text trauma_type
+    text status
+    timestamp started_at
+    timestamp ended_at
+  }
+
+  transcripts {
+    uuid id PK
+    uuid incident_id FK
+    int speaker_index
+    text text
+    int rel_seconds
+    timestamp wall_time
+  }
+
+  summaries {
+    uuid id PK
+    uuid incident_id FK
+    jsonb form_data
+    uuid signed_by FK
+    timestamp signed_at
+    text status
+  }
+
+  timers {
+    uuid id PK
+    uuid incident_id FK
+    text label
+    text trigger_text
+    int duration_sec
+    timestamp started_at
+    boolean expired
+  }
+
+  hospitals ||--o{ users : "employs"
+  hospitals ||--o{ incidents : "has"
+  incidents ||--|| summaries : "has"
+  incidents ||--o{ timers : "tracks"
+  users ||--o{ incidents : "creates"
+  users ||--o{ summaries : "signs"
+        </pre>
+      </div>
+
+      <!-- MongoDB schema note -->
+      <div class="mt-4 bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-lg">🍃</span>
+          <span class="text-sm font-semibold">MongoDB — Transcript Collection</span>
+          <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#ece9e1] dark:bg-[#2a2825] text-[#b1ada1] ml-auto">db: medscript · collection: transcripts</span>
+        </div>
+        <div class="code-block" style="margin-top:0">
+{
+  _id:          ObjectId,
+  incident_id:  "uuid",           <span style="color:#6b7280">// FK → Supabase incidents.id</span>
+  speaker_index: 2,               <span style="color:#6b7280">// 0-4, maps to SPEAKERS array</span>
+  speaker_name: "Nurse Katz",
+  text:         "אדרנלין 1 מ\"ג ניתן תוך-ורידי.",
+  keywords:     ["אדרנלין"],      <span style="color:#6b7280">// pre-extracted for Claude context</span>
+  rel_seconds:  26,               <span style="color:#6b7280">// seconds from incident start</span>
+  wall_time:    ISODate,
+  created_at:   ISODate
+}
+        </div>
+        <div class="text-[10px] text-[#b1ada1] mt-2">Index on <code class="text-[#c15f3c]">incident_id</code> + <code class="text-[#c15f3c]">rel_seconds</code> for fast ordered reads when Claude builds summary context.</div>
+      </div>
+    </section>
+
+    <!-- ══════════════ TECH STACK ══════════════ -->
+    <section id="tech-stack" class="mt-16">
+      <div class="section-title">Tech Stack</div>
+      <div class="section-sub">Chosen for developer velocity, real-time capability, and Israeli healthcare constraints (data residency).</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2"><span class="text-xl">⚛️</span><span class="font-semibold text-sm">Frontend</span><span class="text-[9px] px-2 py-0.5 rounded-full bg-[#fdf0eb] dark:bg-[#2a1f1a] text-[#c15f3c] ml-auto">React SPA · Vite</span></div>
+          <ul class="space-y-1 text-[11px] text-[#6b6560] dark:text-[#9a9590]">
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">React 19 + Vite</strong> — SPA, no SSR, deployed as static bundle</li>
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">React Router v7</strong> — client-side routing, protected route wrappers</li>
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Zustand</strong> — auth.store, session.store, theme.store</li>
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Tailwind CSS 4</strong> + design tokens (CSS custom properties)</li>
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">React Hook Form</strong> + Zod — MoH form validation</li>
+          </ul>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#c15f3c]/40 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2"><span class="text-xl">⚙️</span><span class="font-semibold text-sm">Render Backend</span><span class="text-[9px] px-2 py-0.5 rounded-full bg-[#fdf0eb] dark:bg-[#2a1f1a] text-[#c15f3c] ml-auto">Node / Express</span></div>
+          <ul class="space-y-1 text-[11px] text-[#6b6560] dark:text-[#9a9590]">
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Express.js</strong> — REST API (auth, incidents, summary endpoints)</li>
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">ws</strong> library — WebSocket server for SONIOX proxy</li>
+            <li>• Always-on Render Web Service — no cold-start for live WS connections</li>
+            <li>• Holds all secret keys: SONIOX, Anthropic, DB connection strings</li>
+          </ul>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2"><span class="text-xl">🗄️</span><span class="font-semibold text-sm">Database</span></div>
+          <ul class="space-y-1 text-[11px] text-[#6b6560] dark:text-[#9a9590]">
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Supabase</strong> — PostgreSQL for structured data (users, incidents, summaries)</li>
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">MongoDB</strong> — transcript chunks (high-frequency writes, document model)</li>
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Row-Level Security</strong> — hospital data isolation on Supabase</li>
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Supabase Realtime</strong> — coarse room-state events (timers, form locks); live transcript chunks are broadcast directly by Render WS</li>
+          </ul>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2"><span class="text-xl">🎙️</span><span class="font-semibold text-sm">Transcription</span></div>
+          <ul class="space-y-1 text-[11px] text-[#6b6560] dark:text-[#9a9590]">
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">SONIOX API</strong> — WebSocket, Hebrew + English, speaker diarization</li>
+            <li>• Proxied via <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Render WS proxy</strong> — SONIOX key never touches the browser</li>
+            <li>• Chunks stored in MongoDB → broadcast via Supabase Realtime to all room clients</li>
+            <li>• Audio optionally stored in Supabase Storage for audit trail</li>
+          </ul>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2"><span class="text-xl">🤖</span><span class="font-semibold text-sm">AI / Summary</span></div>
+          <ul class="space-y-1 text-[11px] text-[#6b6560] dark:text-[#9a9590]">
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Claude API</strong> (claude-sonnet-4-6) — auto-fill MoH form from transcript</li>
+            <li>• Called from <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Render backend</strong> only — API key never in frontend</li>
+            <li>• Structured output with tool use → maps directly to form schema</li>
+            <li>• Prompt caching for protocol definitions (saves tokens); runs on incident close</li>
+          </ul>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2"><span class="text-xl">🔒</span><span class="font-semibold text-sm">Auth & Security</span></div>
+          <ul class="space-y-1 text-[11px] text-[#6b6560] dark:text-[#9a9590]">
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Custom JWT</strong> issued by Render backend — email/password, hospital SSO optional</li>
+            <li>• JWT stored in <code class="text-[#c15f3c]">auth.store</code> (Zustand + localStorage); verified by Render on every API call</li>
+            <li>• RBAC: 5 roles (admin / trauma_lead / nurse / paramedic / viewer)</li>
+            <li>• All sign-offs stored with user_id + timestamp; API keys live only on Render</li>
+          </ul>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2"><span class="text-xl">🚀</span><span class="font-semibold text-sm">Deployment</span></div>
+          <ul class="space-y-1 text-[11px] text-[#6b6560] dark:text-[#9a9590]">
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">React SPA</strong> — static bundle deployed to any CDN (Vercel, S3, Netlify)</li>
+            <li>• <strong class="text-[#1e1e1c] dark:text-[#e8e5e0]">Render</strong> — dedicated backend (Node/Express), always-on WebSocket support</li>
+            <li>• Supabase can be self-hosted for Israel data residency</li>
+            <li>• CI/CD: GitHub Actions → build web/ → deploy static + deploy api/ to Render</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ FOLDER STRUCTURE ══════════════ -->
+    <section id="folder-structure" class="mt-16">
+      <div class="section-title">Folder Structure</div>
+      <div class="section-sub">Two-root repo: <code class="text-[#c15f3c]">web/</code> → React SPA (any CDN) · <code class="text-[#c15f3c]">api/</code> → Render Node/Express. All secret keys live only in <code class="text-[#c15f3c]">api/.env</code>. No monorepo overhead — types live in <code class="text-[#c15f3c]">web/src/shared/types/</code> and are duplicated into <code class="text-[#c15f3c]">api/src/types/</code> (or extracted to a shared package later if drift becomes a problem).</div>
+
+      <!-- Root -->
+      <div class="code-block mt-4 mb-4">
+<span style="color:#e8855e">medscript/                        </span><span style="color:#6b7280">← git root</span>
+├── <span style="color:#e8855e">web/</span>                          <span style="color:#6b7280">← React SPA · Vite · deployed as static bundle</span>
+└── <span style="color:#e8855e">api/</span>                          <span style="color:#6b7280">← Node/Express · Render Web Service (always-on)</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- WEB -->
+        <div>
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="text-xs font-bold text-[#c15f3c]">web/</span>
+            <span class="text-[10px] text-[#b1ada1]">React 19 · Vite · SPA</span>
+          </div>
+          <div class="code-block" style="margin-top:0;font-size:10.5px">
+<span style="color:#e8855e">web/src/</span>
+├── <span style="color:#e8855e">app/</span>
+│   ├── App.tsx             <span style="color:#6b7280">← RouterProvider + Providers</span>
+│   ├── router.tsx          <span style="color:#6b7280">← createBrowserRouter — all routes</span>
+│   └── providers.tsx       <span style="color:#6b7280">← theme class toggle on &lt;html&gt;</span>
+│
+├── <span style="color:#e8855e">components-ui/</span>            <span style="color:#6b7280">← generic primitives, ZERO domain logic</span>
+│   ├── Button.tsx
+│   ├── Badge.tsx
+│   ├── Input.tsx
+│   ├── Modal.tsx
+│   ├── Card.tsx
+│   ├── Avatar.tsx
+│   ├── Spinner.tsx
+│   ├── Skeleton.tsx
+│   ├── Toast.tsx
+│   ├── Tabs.tsx
+│   ├── Toggle.tsx
+│   ├── AudioWaveform.tsx
+│   ├── SpeakerChip.tsx
+│   └── index.ts            <span style="color:#6b7280">← barrel export</span>
+│
+├── <span style="color:#e8855e">pages/</span>
+│   ├── <span style="color:#e8855e">auth/</span>                       <span style="color:#6b7280">← everything auth lives here together</span>
+│   │   ├── LoginPage.tsx
+│   │   ├── RegisterPage.tsx
+│   │   ├── <span style="color:#e8855e">components/</span>
+│   │   │   ├── AuthLayout.tsx
+│   │   │   ├── LoginForm.tsx
+│   │   │   └── RegisterForm.tsx
+│   │   └── <span style="color:#e8855e">services/</span>               <span style="color:#6b7280">← pure TS, used only by auth pages</span>
+│   │       └── auth.service.ts     <span style="color:#6b7280">← login/register/logout API + token mgmt</span>
+│   │
+│   ├── <span style="color:#e8855e">dashboard/</span>
+│   │   ├── DashboardPage.tsx
+│   │   └── <span style="color:#e8855e">components/</span>
+│   │       ├── StatCard.tsx
+│   │       ├── FilterBar.tsx
+│   │       ├── IncidentTable.tsx
+│   │       ├── IncidentRow.tsx
+│   │       └── IncidentDetailModal.tsx
+│   │
+│   ├── <span style="color:#e8855e">session/</span>                    <span style="color:#6b7280">← everything session lives here together</span>
+│   │   ├── SessionPage.tsx
+│   │   ├── <span style="color:#e8855e">components/</span>
+│   │   │   ├── SessionHeader.tsx
+│   │   │   ├── PanelShell.tsx
+│   │   │   ├── <span style="color:#e8855e">ProtocolPanel/</span>
+│   │   │   │   ├── index.tsx
+│   │   │   │   ├── ACLSFlowchart.tsx
+│   │   │   │   └── FlowNode.tsx
+│   │   │   ├── <span style="color:#e8855e">TranscriptPanel/</span>
+│   │   │   │   ├── index.tsx
+│   │   │   │   ├── TranscriptEntry.tsx
+│   │   │   │   └── RecordingControls.tsx
+│   │   │   └── <span style="color:#e8855e">SummaryPanel/</span>
+│   │   │       ├── index.tsx
+│   │   │       ├── MoHForm.tsx
+│   │   │       └── SignBlock.tsx
+│   │   └── <span style="color:#e8855e">services/</span>               <span style="color:#6b7280">← pure TS, used only by session page</span>
+│   │       ├── ws.service.ts       <span style="color:#6b7280">← WSService: connect/send/reconnect</span>
+│   │       ├── keyword.service.ts  <span style="color:#6b7280">← detectKeywords(text) → KeywordEvent[]</span>
+│   │       └── timer.service.ts    <span style="color:#6b7280">← countdown logic, Web Audio bell</span>
+│   │
+│   ├── <span style="color:#e8855e">voice-stamp/</span>                <span style="color:#6b7280">← everything voice stamp lives here together</span>
+│   │   ├── VoiceStampPage.tsx
+│   │   ├── <span style="color:#e8855e">components/</span>
+│   │   │   ├── VoiceRecorder.tsx
+│   │   │   ├── WaveformDisplay.tsx
+│   │   │   └── StampCard.tsx
+│   │   └── <span style="color:#e8855e">services/</span>               <span style="color:#6b7280">← pure TS, used only by voice-stamp page</span>
+│   │       ├── recorder.service.ts <span style="color:#6b7280">← MediaRecorder API wrapper</span>
+│   │       └── audio.service.ts    <span style="color:#6b7280">← Web Audio → Float32Array waveform</span>
+│   │
+│   ├── <span style="color:#e8855e">settings/</span>
+│   │   ├── SettingsPage.tsx
+│   │   └── <span style="color:#e8855e">components/</span>
+│   │       ├── ProfileForm.tsx
+│   │       ├── VoiceStampManager.tsx
+│   │       ├── NotificationPrefs.tsx
+│   │       └── TeamSection.tsx
+│   │
+│   ├── <span style="color:#e8855e">patient-lookup/</span>
+│   │   ├── PatientLookupPage.tsx
+│   │   └── <span style="color:#e8855e">components/</span>
+│   │       ├── PatientSearchBar.tsx
+│   │       ├── PatientCard.tsx
+│   │       └── PatientHistoryList.tsx
+│   │
+│   └── <span style="color:#e8855e">admin/</span>
+│       ├── AdminPage.tsx
+│       └── <span style="color:#e8855e">components/</span>
+│           ├── UsageChart.tsx
+│           ├── TeamTable.tsx
+│           └── ExportPanel.tsx
+│
+├── <span style="color:#e8855e">shared/</span>                         <span style="color:#6b7280">← only truly cross-page concerns go here</span>
+│   ├── <span style="color:#e8855e">stores/</span>                 <span style="color:#6b7280">← Zustand global state (no side effects)</span>
+│   │   ├── auth.store.ts   <span style="color:#6b7280">← user, token, role — persisted to localStorage</span>
+│   │   ├── session.store.ts <span style="color:#6b7280">← entries, timers, panel collapse state</span>
+│   │   └── theme.store.ts  <span style="color:#6b7280">← light / dark</span>
+│   ├── <span style="color:#e8855e">hooks/</span>                  <span style="color:#6b7280">← React hooks used by 2+ pages</span>
+│   │   ├── useAuth.ts      <span style="color:#6b7280">← reads auth.store, redirects if no token</span>
+│   │   └── useTheme.ts     <span style="color:#6b7280">← toggles dark class on &lt;html&gt;</span>
+│   ├── <span style="color:#e8855e">api/</span>                    <span style="color:#6b7280">← typed HTTP wrappers — one file per resource</span>
+│   │   ├── client.ts       <span style="color:#6b7280">← base fetch: auth header, error shape</span>
+│   │   ├── sessions.api.ts <span style="color:#6b7280">← list / get / create / close incidents</span>
+│   │   └── users.api.ts    <span style="color:#6b7280">← profile, voice stamp upload</span>
+│   ├── <span style="color:#e8855e">types/</span>
+│   │   ├── auth.types.ts   <span style="color:#6b7280">← User, Role, JwtPayload</span>
+│   │   ├── session.types.ts <span style="color:#6b7280">← Incident, TimerCard, PanelState</span>
+│   │   └── transcript.types.ts <span style="color:#6b7280">← TranscriptChunk, KeywordEvent</span>
+│   └── <span style="color:#e8855e">lib/</span>
+│       ├── formatters.ts   <span style="color:#6b7280">← date, duration, incident ID</span>
+│       └── rtl.ts          <span style="color:#6b7280">← Hebrew RTL helpers</span>
+│
+└── <span style="color:#e8855e">styles/</span>
+    ├── tokens.css          <span style="color:#6b7280">← CSS custom properties (design tokens)</span>
+    └── globals.css         <span style="color:#6b7280">← base reset + @import tokens + @import tailwindcss</span>
+
+web/.env
+  VITE_BACKEND_URL=https://medscript.onrender.com
+  VITE_SUPABASE_URL=https://xxx.supabase.co
+  VITE_SUPABASE_ANON_KEY=eyJ...  <span style="color:#6b7280"># RLS-guarded, safe to expose</span>
+          </div>
+        </div>
+
+        <!-- API -->
+        <div>
+          <div class="flex items-center gap-2 mb-2 px-1">
+            <span class="text-xs font-bold text-[#c15f3c]">api/</span>
+            <span class="text-[10px] text-[#b1ada1]">Node/Express · Render</span>
+          </div>
+          <div class="code-block" style="margin-top:0;font-size:10.5px">
+<span style="color:#e8855e">api/src/</span>
+├── <span style="color:#e8855e">routes/</span>
+│   ├── auth.routes.ts      <span style="color:#6b7280">← POST /auth/login · POST /auth/register</span>
+│   ├── sessions.routes.ts  <span style="color:#6b7280">← CRUD /incidents</span>
+│   ├── transcripts.routes.ts <span style="color:#6b7280">← GET /incidents/:id/transcript</span>
+│   └── users.routes.ts     <span style="color:#6b7280">← GET/PUT /users/:id (profile, voice stamp)</span>
+│
+├── <span style="color:#e8855e">controllers/</span>
+│   ├── auth.controller.ts
+│   ├── sessions.controller.ts
+│   └── transcripts.controller.ts
+│
+├── <span style="color:#e8855e">services/</span>
+│   ├── stt.service.ts      <span style="color:#6b7280">← SONIOX WS proxy</span>
+│   │                       <span style="color:#6b7280">   rooms: Map&lt;incidentId, Set&lt;WS&gt;&gt;</span>
+│   ├── ai-summary.service.ts <span style="color:#6b7280">← Claude structured output → form data</span>
+│   └── voice-stamp.service.ts <span style="color:#6b7280">← enroll voice with SONIOX speaker ID API</span>
+│
+├── <span style="color:#e8855e">middleware/</span>
+│   ├── auth.middleware.ts  <span style="color:#6b7280">← JWT verify on every /api/* route</span>
+│   └── rbac.middleware.ts  <span style="color:#6b7280">← role guard factory</span>
+│
+├── <span style="color:#e8855e">db/</span>
+│   ├── postgres.ts         <span style="color:#6b7280">← Supabase service_role client</span>
+│   ├── mongo.ts            <span style="color:#6b7280">← transcript chunk r/w</span>
+│   └── schema.ts           <span style="color:#6b7280">← TS types mirroring DB tables</span>
+│
+└── server.ts               <span style="color:#6b7280">← http.createServer(app) + WS upgrade</span>
+
+api/.env
+  JWT_SECRET=...            <span style="color:#6b7280"># shared with web (for client-side decode only)</span>
+  SONIOX_API_KEY=...        <span style="color:#6b7280"># never in web</span>
+  ANTHROPIC_API_KEY=...     <span style="color:#6b7280"># never in web</span>
+  SUPABASE_SERVICE_ROLE_KEY=... <span style="color:#6b7280"># never in web</span>
+  MONGODB_URI=...
+  PORT=3001
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Code Sketches ── -->
+      <div class="mt-8">
+        <div class="text-xs font-semibold uppercase tracking-widest text-[#b1ada1] mb-4">Code Sketches — one per package</div>
+
+        <!-- web/src/components-components/ -->
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">web/src/components-ui/Button.tsx</span>
+            <span class="text-[9px] text-[#b1ada1]">generic primitive — no domain logic</span>
+          </div>
+          <div class="code-block">
+<span style="color:#f59e0b">type</span> Variant = <span style="color:#86efac">'primary' | 'secondary' | 'ghost' | 'danger'</span>
+<span style="color:#93c5fd">interface</span> ButtonProps <span style="color:#f59e0b">extends</span> ButtonHTMLAttributes&lt;HTMLButtonElement&gt; {
+  variant?: Variant
+  size?: <span style="color:#86efac">'sm' | 'md' | 'lg'</span>
+  loading?: boolean
+}
+<span style="color:#f59e0b">export function</span> <span style="color:#93c5fd">Button</span>({ variant = <span style="color:#86efac">'primary'</span>, loading, children, ...props }: ButtonProps) {
+  <span style="color:#f59e0b">return</span> (
+    &lt;<span style="color:#93c5fd">button</span> className={cls[variant]} disabled={loading || props.disabled} {<span style="color:#86efac">...props</span>}&gt;
+      {loading &amp;&amp; &lt;<span style="color:#93c5fd">Spinner</span> size=<span style="color:#86efac">"sm"</span> /&gt;}
+      {children}
+    &lt;/<span style="color:#93c5fd">button</span>&gt;
+  )
+}</div>
+        </div>
+
+        <!-- web/src/pages/session/services/ -->
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">web/src/pages/session/services/keyword.service.ts</span>
+            <span class="text-[9px] text-[#b1ada1]">pure TS — zero React, zero imports from stores</span>
+          </div>
+          <div class="code-block">
+<span style="color:#f59e0b">const</span> PROTOCOL_KW = [<span style="color:#86efac">'החייאה'</span>, <span style="color:#86efac">'CPR'</span>, <span style="color:#86efac">'cardiac arrest'</span>, <span style="color:#86efac">'ACLS'</span>, <span style="color:#86efac">'VF'</span>]
+<span style="color:#f59e0b">const</span> TIMER_KW: Record&lt;string, number&gt; = {
+  <span style="color:#86efac">'אדרנלין'</span>: 240,  <span style="color:#6b7280">// epinephrine → 4 min timer</span>
+  <span style="color:#86efac">'אמיודרון'</span>: 300,  <span style="color:#6b7280">// amiodarone → 5 min timer</span>
+  <span style="color:#86efac">'epinephrine'</span>: 240,
+}
+<span style="color:#f59e0b">export function</span> <span style="color:#93c5fd">detectKeywords</span>(text: string): KeywordEvent[] {
+  <span style="color:#f59e0b">const</span> lower = text.toLowerCase()
+  <span style="color:#f59e0b">const</span> events: KeywordEvent[] = []
+  <span style="color:#f59e0b">for</span> (<span style="color:#f59e0b">const</span> kw <span style="color:#f59e0b">of</span> PROTOCOL_KW)
+    <span style="color:#f59e0b">if</span> (lower.includes(kw.toLowerCase()))
+      events.push({ type: <span style="color:#86efac">'open_protocol'</span>, keyword: kw })
+  <span style="color:#f59e0b">for</span> (<span style="color:#f59e0b">const</span> [kw, secs] <span style="color:#f59e0b">of</span> Object.entries(TIMER_KW))
+    <span style="color:#f59e0b">if</span> (lower.includes(kw.toLowerCase()))
+      events.push({ type: <span style="color:#86efac">'start_timer'</span>, keyword: kw, durationSec: secs })
+  <span style="color:#f59e0b">return</span> events
+}</div>
+        </div>
+
+        <!-- web/src/pages/session/services/ws.service.ts -->
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">web/src/pages/session/services/ws.service.ts</span>
+            <span class="text-[9px] text-[#b1ada1]">singleton WebSocket — auto-reconnects on drop</span>
+          </div>
+          <div class="code-block">
+<span style="color:#f59e0b">export class</span> WSService {
+  <span style="color:#f59e0b">private</span> ws: WebSocket | null = null
+  <span style="color:#f59e0b">private</span> url = <span style="color:#86efac">''</span>
+  <span style="color:#f59e0b">private</span> onMsg: (data: string) =&gt; void = () =&gt; {}
+
+  connect(url: string, onMessage: (data: string) =&gt; void) {
+    this.url = url; this.onMsg = onMessage
+    this.ws = <span style="color:#f59e0b">new</span> WebSocket(url)
+    this.ws.onmessage = e =&gt; this.onMsg(e.data)
+    this.ws.onclose   = () =&gt; setTimeout(() =&gt; this.connect(this.url, this.onMsg), 2000)
+  }
+  send(data: ArrayBuffer | string) { this.ws?.send(data) }
+  disconnect() { this.ws?.onclose = null; this.ws?.close() }
+}
+<span style="color:#f59e0b">export const</span> wsService = <span style="color:#f59e0b">new</span> WSService() <span style="color:#6b7280">// singleton — one WS per session</span></div>
+        </div>
+
+        <!-- web/src/pages/auth/services/auth.service.ts -->
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">web/src/pages/auth/services/auth.service.ts</span>
+            <span class="text-[9px] text-[#b1ada1]">login/register/logout — writes token into auth.store</span>
+          </div>
+          <div class="code-block">
+<span style="color:#f59e0b">import</span> { client } <span style="color:#f59e0b">from</span> <span style="color:#86efac">'@/shared/api/client'</span>
+<span style="color:#f59e0b">import</span> { useAuthStore } <span style="color:#f59e0b">from</span> <span style="color:#86efac">'@/shared/stores/auth.store'</span>
+
+<span style="color:#f59e0b">export async function</span> <span style="color:#93c5fd">login</span>(email: string, password: string) {
+  <span style="color:#f59e0b">const</span> { token, user } = <span style="color:#f59e0b">await</span> client.post&lt;{ token: string; user: User }&gt;(
+    <span style="color:#86efac">'/auth/login'</span>, { email, password }
+  )
+  useAuthStore.getState().setAuth(token, user)   <span style="color:#6b7280">// persist to localStorage via Zustand</span>
+}
+
+<span style="color:#f59e0b">export async function</span> <span style="color:#93c5fd">register</span>(dto: RegisterDto) {
+  <span style="color:#f59e0b">const</span> { token, user } = <span style="color:#f59e0b">await</span> client.post&lt;{ token: string; user: User }&gt;(
+    <span style="color:#86efac">'/auth/register'</span>, dto
+  )
+  useAuthStore.getState().setAuth(token, user)
+}
+
+<span style="color:#f59e0b">export function</span> <span style="color:#93c5fd">logout</span>() {
+  useAuthStore.getState().clearAuth()            <span style="color:#6b7280">// wipes localStorage token</span>
+}</div>
+        </div>
+
+        <!-- web/src/pages/voice-stamp/services/recorder.service.ts -->
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">web/src/pages/voice-stamp/services/recorder.service.ts</span>
+            <span class="text-[9px] text-[#b1ada1]">MediaRecorder wrapper — captures 3-sec voice stamp blobs</span>
+          </div>
+          <div class="code-block">
+<span style="color:#f59e0b">export class</span> RecorderService {
+  <span style="color:#f59e0b">private</span> mr: MediaRecorder | null = null
+  <span style="color:#f59e0b">private</span> chunks: BlobPart[] = []
+
+  <span style="color:#f59e0b">async</span> start() {
+    <span style="color:#f59e0b">const</span> stream = <span style="color:#f59e0b">await</span> navigator.mediaDevices.getUserMedia({ audio: true })
+    this.chunks = []
+    this.mr = <span style="color:#f59e0b">new</span> MediaRecorder(stream, { mimeType: <span style="color:#86efac">'audio/webm;codecs=opus'</span> })
+    this.mr.ondataavailable = e =&gt; this.chunks.push(e.data)
+    this.mr.start()
+  }
+
+  stop(): Promise&lt;Blob&gt; {
+    <span style="color:#f59e0b">return new</span> Promise(resolve =&gt; {
+      this.mr!.onstop = () =&gt; resolve(<span style="color:#f59e0b">new</span> Blob(this.chunks, { type: <span style="color:#86efac">'audio/webm'</span> }))
+      this.mr!.stop()
+      this.mr!.stream.getTracks().forEach(t =&gt; t.stop())
+    })
+  }
+}
+<span style="color:#f59e0b">export const</span> recorderService = <span style="color:#f59e0b">new</span> RecorderService() <span style="color:#6b7280">// one recorder per page mount</span></div>
+        </div>
+
+        <!-- web/src/shared/stores/ -->
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">web/src/shared/stores/session.store.ts</span>
+            <span class="text-[9px] text-[#b1ada1]">Zustand — no side effects, just state mutations</span>
+          </div>
+          <div class="code-block">
+<span style="color:#f59e0b">interface</span> SessionState {
+  entries: TranscriptChunk[]
+  timers:  TimerCard[]
+  panels:  Record&lt;<span style="color:#86efac">'protocol' | 'transcript' | 'summary'</span>, boolean&gt;
+  addEntry:    (e: TranscriptChunk) =&gt; void
+  addTimer:    (t: TimerCard) =&gt; void
+  expireTimer: (id: string) =&gt; void
+  togglePanel: (name: <span style="color:#86efac">'protocol' | 'transcript' | 'summary'</span>) =&gt; void
+}
+<span style="color:#f59e0b">export const</span> useSessionStore = create&lt;SessionState&gt;()((set) =&gt; ({
+  entries: [], timers: [], panels: { protocol: true, transcript: true, summary: true },
+  addEntry:    (e) =&gt; set(s =&gt; ({ entries: [...s.entries, e] })),
+  addTimer:    (t) =&gt; set(s =&gt; ({ timers:  [...s.timers,  t] })),
+  expireTimer: (id) =&gt; set(s =&gt; ({ timers: s.timers.filter(t =&gt; t.id !== id) })),
+  togglePanel: (n) =&gt; set(s =&gt; ({ panels: { ...s.panels, [n]: !s.panels[n] } })),
+}))</div>
+        </div>
+
+        <!-- web/src/shared/hooks/ -->
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">web/src/shared/hooks/useSTT.ts</span>
+            <span class="text-[9px] text-[#b1ada1]">hook glues wsService + keyword.service → session.store</span>
+          </div>
+          <div class="code-block">
+<span style="color:#f59e0b">export function</span> <span style="color:#93c5fd">useSTT</span>(incidentId: string) {
+  <span style="color:#f59e0b">const</span> addEntry = useSessionStore(s =&gt; s.addEntry)
+  <span style="color:#f59e0b">const</span> addTimer  = useSessionStore(s =&gt; s.addTimer)
+  <span style="color:#f59e0b">const</span> { token } = useAuthStore()
+
+  useEffect(() =&gt; {
+    <span style="color:#f59e0b">const</span> url = `${<span style="color:#86efac">import.meta.env.VITE_BACKEND_URL</span>}/ws/room/${incidentId}?token=${token}`
+    wsService.connect(url, (raw) =&gt; {
+      <span style="color:#f59e0b">const</span> chunk: TranscriptChunk = JSON.parse(raw)
+      addEntry(chunk)
+      detectKeywords(chunk.text).forEach(ev =&gt; {
+        <span style="color:#f59e0b">if</span> (ev.type === <span style="color:#86efac">'start_timer'</span>)
+          addTimer({ id: crypto.randomUUID(), label: ev.keyword, durationSec: ev.durationSec })
+      })
+    })
+    <span style="color:#f59e0b">return</span> () =&gt; wsService.disconnect()
+  }, [incidentId])
+}</div>
+        </div>
+
+        <!-- web/src/shared/api/ -->
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">web/src/shared/api/sessions.api.ts</span>
+            <span class="text-[9px] text-[#b1ada1]">typed fetch — calls Render REST, no WebSocket here</span>
+          </div>
+          <div class="code-block">
+<span style="color:#f59e0b">import</span> { client } <span style="color:#f59e0b">from</span> <span style="color:#86efac">'./client'</span>
+<span style="color:#f59e0b">import type</span> { Incident, CreateIncidentDto } <span style="color:#f59e0b">from</span> <span style="color:#86efac">'../types/session.types'</span>
+
+<span style="color:#f59e0b">export const</span> sessionsApi = {
+  list:   ()                        =&gt; client.get&lt;Incident[]&gt;(<span style="color:#86efac">'/incidents'</span>),
+  get:    (id: string)              =&gt; client.get&lt;Incident&gt;(`/incidents/${id}`),
+  create: (dto: CreateIncidentDto)  =&gt; client.post&lt;Incident&gt;(<span style="color:#86efac">'/incidents'</span>, dto),
+  close:  (id: string)              =&gt; client.post(`/incidents/${id}/close`),
+  export: (from: string, to: string) =&gt; client.get(`/incidents/export?from=${from}&amp;to=${to}`),
+}</div>
+        </div>
+
+        <!-- web/src/shared/types/ -->
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">web/src/shared/types/transcript.types.ts</span>
+            <span class="text-[9px] text-[#b1ada1]">mirrored in api/src/db/schema.ts — keep in sync</span>
+          </div>
+          <div class="code-block">
+<span style="color:#f59e0b">export interface</span> TranscriptChunk {
+  id:           string
+  incident_id:  string
+  speaker_index: number          <span style="color:#6b7280">// 0–4, maps to SPEAKERS color array</span>
+  speaker_name:  string
+  text:          string
+  keywords:      string[]        <span style="color:#6b7280">// pre-extracted by backend on save</span>
+  rel_seconds:   number          <span style="color:#6b7280">// seconds from incident start</span>
+  wall_time:     string          <span style="color:#6b7280">// ISO timestamp</span>
+}
+<span style="color:#f59e0b">export interface</span> KeywordEvent {
+  type:        <span style="color:#86efac">'open_protocol' | 'start_timer'</span>
+  keyword:     string
+  durationSec?: number
+}
+<span style="color:#f59e0b">export interface</span> TimerCard {
+  id:          string
+  label:       string
+  durationSec: number
+  startedAt:   number            <span style="color:#6b7280">// Date.now()</span>
+}</div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- api/src/services/ -->
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">api/src/services/stt.service.ts</span>
+            </div>
+            <div class="code-block" style="margin-top:0">
+<span style="color:#6b7280">// rooms: Map keeps WS sets per incident</span>
+<span style="color:#f59e0b">const</span> rooms = <span style="color:#f59e0b">new</span> Map&lt;string, Set&lt;WebSocket&gt;&gt;()
+
+<span style="color:#f59e0b">export function</span> <span style="color:#93c5fd">joinRoom</span>(incidentId: string, clientWs: WebSocket) {
+  <span style="color:#f59e0b">if</span> (!rooms.has(incidentId)) rooms.set(incidentId, <span style="color:#f59e0b">new</span> Set())
+  rooms.get(incidentId)!.add(clientWs)
+
+  <span style="color:#f59e0b">const</span> soniox = <span style="color:#f59e0b">new</span> WebSocket(SONIOX_URL)
+  soniox.onmessage = <span style="color:#f59e0b">async</span> ({ data }) =&gt; {
+    <span style="color:#f59e0b">const</span> chunk = parseChunk(data, incidentId)
+    <span style="color:#f59e0b">await</span> mongo.saveChunk(chunk)         <span style="color:#6b7280">// → MongoDB</span>
+    rooms.get(incidentId)               <span style="color:#6b7280">// broadcast to all room clients</span>
+      ?.forEach(ws =&gt; ws.send(JSON.stringify(chunk)))
+  }
+  clientWs.onclose = () =&gt; {
+    rooms.get(incidentId)?.delete(clientWs)
+    <span style="color:#f59e0b">if</span> (!rooms.get(incidentId)?.size) soniox.close()
+  }
+}</div>
+          </div>
+
+          <!-- api/src/services/ai-summary.service.ts -->
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">api/src/services/ai-summary.service.ts</span>
+            </div>
+            <div class="code-block" style="margin-top:0">
+<span style="color:#f59e0b">export async function</span> <span style="color:#93c5fd">generateSummary</span>(incidentId: string) {
+  <span style="color:#f59e0b">const</span> chunks = <span style="color:#f59e0b">await</span> mongo.getChunks(incidentId)
+  <span style="color:#f59e0b">const</span> transcript = chunks
+    .map(c =&gt; `[${c.speaker_name}] ${c.text}`)
+    .join(<span style="color:#86efac">'\n'</span>)
+
+  <span style="color:#f59e0b">const</span> msg = <span style="color:#f59e0b">await</span> anthropic.messages.create({
+    model: <span style="color:#86efac">'claude-sonnet-4-6'</span>,
+    max_tokens: 1024,
+    tools: [mohFormTool],          <span style="color:#6b7280">// structured output → SummaryFormData</span>
+    messages: [{
+      role: <span style="color:#86efac">'user'</span>,
+      content: `Fill MoH Appendix Z:\n${transcript}`,
+    }],
+  })
+  <span style="color:#f59e0b">return</span> extractToolInput&lt;SummaryFormData&gt;(msg)
+}</div>
+          </div>
+
+          <!-- api/src/middleware/ -->
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">api/src/middleware/auth.middleware.ts</span>
+            </div>
+            <div class="code-block" style="margin-top:0">
+<span style="color:#f59e0b">export function</span> <span style="color:#93c5fd">requireAuth</span>(
+  req: Request, res: Response, next: NextFunction
+) {
+  <span style="color:#f59e0b">const</span> token = req.headers.authorization?.split(<span style="color:#86efac">' '</span>)[1]
+  <span style="color:#f59e0b">if</span> (!token)
+    <span style="color:#f59e0b">return</span> res.status(401).json({ error: <span style="color:#86efac">'No token'</span> })
+  <span style="color:#f59e0b">try</span> {
+    req.user = jwt.verify(token, process.env.JWT_SECRET!) <span style="color:#f59e0b">as</span> JwtPayload
+    next()
+  } <span style="color:#f59e0b">catch</span> {
+    res.status(401).json({ error: <span style="color:#86efac">'Invalid token'</span> })
+  }
+}
+<span style="color:#6b7280">// usage: router.use(requireAuth)</span>
+<span style="color:#6b7280">// RBAC: requireRole('admin') wraps requireAuth + role check</span></div>
+          </div>
+
+          <!-- api/src/db/ -->
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-[9px] font-bold text-[#c15f3c] bg-[#fdf0eb] px-2 py-0.5 rounded font-mono">api/src/db/mongo.ts</span>
+            </div>
+            <div class="code-block" style="margin-top:0">
+<span style="color:#f59e0b">let</span> db: Db
+<span style="color:#f59e0b">export async function</span> <span style="color:#93c5fd">connectMongo</span>() {
+  <span style="color:#f59e0b">const</span> client = <span style="color:#f59e0b">await</span> MongoClient.connect(process.env.MONGODB_URI!)
+  db = client.db(<span style="color:#86efac">'medscript'</span>)
+}
+<span style="color:#f59e0b">export const</span> mongo = {
+  saveChunk: (chunk: TranscriptChunk) =&gt;
+    db.collection(<span style="color:#86efac">'transcripts'</span>).insertOne(chunk),
+
+  getChunks: (incidentId: string) =&gt;
+    db.collection(<span style="color:#86efac">'transcripts'</span>)
+      .find({ incident_id: incidentId })
+      .sort({ rel_seconds: 1 })    <span style="color:#6b7280">// ordered for Claude context</span>
+      .toArray() <span style="color:#f59e0b">as</span> Promise&lt;TranscriptChunk[]&gt;,
+}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ COUPLING & BOUNDARIES ══════════════ -->
+    <section id="coupling" class="mt-16">
+      <div class="section-title">Coupling & Boundaries</div>
+      <div class="section-sub">What each service owns, where the cross-boundary calls are, and the mitigation for each coupling risk.</div>
+
+      <!-- Service ownership table -->
+      <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl overflow-hidden mb-4">
+        <div class="px-4 py-2 bg-[#f4f3ee] dark:bg-[#252420] border-b border-[#d8d2c8] dark:border-[#3a3835] text-[10px] font-semibold uppercase tracking-widest text-[#b1ada1]">Service Ownership</div>
+        <div class="grid grid-cols-[2fr_1fr_1fr_1fr] text-[10px]">
+          <div class="px-4 py-2 font-semibold text-[#b1ada1] bg-[#f4f3ee]/50 dark:bg-[#252420]/50 border-b border-[#d8d2c8]/50 dark:border-[#3a3835]/50">Resource</div>
+          <div class="px-3 py-2 font-semibold text-[#b1ada1] bg-[#f4f3ee]/50 dark:bg-[#252420]/50 border-b border-[#d8d2c8]/50 dark:border-[#3a3835]/50 text-center">Frontend</div>
+          <div class="px-3 py-2 font-semibold text-[#b1ada1] bg-[#f4f3ee]/50 dark:bg-[#252420]/50 border-b border-[#d8d2c8]/50 dark:border-[#3a3835]/50 text-center">Render Backend</div>
+          <div class="px-3 py-2 font-semibold text-[#b1ada1] bg-[#f4f3ee]/50 dark:bg-[#252420]/50 border-b border-[#d8d2c8]/50 dark:border-[#3a3835]/50 text-center">Why split here</div>
+          <!-- rows -->
+          <div class="px-4 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 font-medium">Auth tokens (JWT)</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#b1ada1]">reads cookie</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#22c55e] font-semibold">owns — issues + signs</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-[#8a8070] dark:text-[#9a9590]">JWT verified server-side only</div>
+          <div class="px-4 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 font-medium">SONIOX API</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#b1ada1]">never</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#22c55e] font-semibold">owns — WS proxy</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-[#8a8070] dark:text-[#9a9590]">API key never exposed</div>
+          <div class="px-4 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 font-medium">Claude API</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#b1ada1]">never</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#22c55e] font-semibold">owns — summary service</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-[#8a8070] dark:text-[#9a9590]">ANTHROPIC_KEY never exposed</div>
+          <div class="px-4 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 font-medium">MongoDB — transcript chunks</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#b1ada1]">never</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#22c55e] font-semibold">owns — r/w</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-[#8a8070] dark:text-[#9a9590]">MONGODB_URI never exposed</div>
+          <div class="px-4 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 font-medium">Supabase PostgreSQL</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#f59e0b] font-semibold">reads (anon + RLS)</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-center text-[#22c55e] font-semibold">writes (service_role)</div>
+          <div class="px-3 py-2.5 border-b border-[#d8d2c8]/30 dark:border-[#3a3835]/30 text-[#8a8070] dark:text-[#9a9590]">RLS enforces hospital isolation on reads</div>
+          <div class="px-4 py-2.5 font-medium">Shared Types (packages/shared)</div>
+          <div class="px-3 py-2.5 text-center text-[#22c55e] font-semibold">imports</div>
+          <div class="px-3 py-2.5 text-center text-[#22c55e] font-semibold">imports</div>
+          <div class="px-3 py-2.5 text-[#8a8070] dark:text-[#9a9590]">Single source prevents type drift</div>
+        </div>
+      </div>
+
+      <!-- Coupling risks -->
+      <div class="text-xs font-semibold uppercase tracking-widest text-[#b1ada1] mb-3 mt-6">Coupling Risk Assessment</div>
+      <div class="space-y-3">
+
+        <!-- Risk 1 — resolved -->
+        <div class="flex gap-3 bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="w-5 h-5 rounded-full bg-[#f0fdf4] border border-[#86efac] flex items-center justify-center text-[10px] text-[#16a34a] font-bold shrink-0 mt-0.5">✓</div>
+          <div class="min-w-0">
+            <div class="text-xs font-semibold mb-0.5">JWT auth — client-side guard via Zustand, server-side verify per call</div>
+            <div class="text-[11px] text-[#6b6560] dark:text-[#9a9590]">The React SPA keeps the JWT in <code class="text-[#c15f3c]">auth.store</code> (Zustand, persisted to <code class="text-[#c15f3c]">localStorage</code>). <code class="text-[#c15f3c]">useAuth()</code> reads the store and redirects to <code class="text-[#c15f3c]">/login</code> if no token — client-side only. The Render backend independently verifies the JWT signature on every API call. No shared secret needed in the frontend bundle.</div>
+          </div>
+        </div>
+
+        <!-- Risk 2 — resolved -->
+        <div class="flex gap-3 bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="w-5 h-5 rounded-full bg-[#f0fdf4] border border-[#86efac] flex items-center justify-center text-[10px] text-[#16a34a] font-bold shrink-0 mt-0.5">✓</div>
+          <div class="min-w-0">
+            <div class="text-xs font-semibold mb-0.5">Transcript broadcast — direct WS, not Supabase Realtime</div>
+            <div class="text-[11px] text-[#6b6560] dark:text-[#9a9590]">Render's <code class="text-[#c15f3c]">soniox-proxy.ts</code> keeps a <code class="text-[#c15f3c]">rooms: Map&lt;incidentId, Set&lt;WebSocket&gt;&gt;</code>. When a SONIOX chunk arrives it writes to MongoDB <em>and</em> fans out directly to all WebSockets in that room. No Supabase Realtime hop needed for live chunks (saves latency + cost). Supabase Realtime is used only for coarser room-state events (timer updates, form field locks).</div>
+          </div>
+        </div>
+
+        <!-- Risk 3 — resolved -->
+        <div class="flex gap-3 bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="w-5 h-5 rounded-full bg-[#f0fdf4] border border-[#86efac] flex items-center justify-center text-[10px] text-[#16a34a] font-bold shrink-0 mt-0.5">✓</div>
+          <div class="min-w-0">
+            <div class="text-xs font-semibold mb-0.5">No server-side API routes in frontend — pure SPA</div>
+            <div class="text-[11px] text-[#6b6560] dark:text-[#9a9590]">All sensitive server logic (SONIOX proxy, Claude call, incident writes) lives on Render. The React SPA calls Render via <code class="text-[#c15f3c]">shared/api/client.ts</code> (typed fetch wrapper, base URL from <code class="text-[#c15f3c]">VITE_BACKEND_URL</code>). There is no server-side execution in the web bundle — secrets can only ever be in <code class="text-[#c15f3c]">api/.env</code>.</div>
+          </div>
+        </div>
+
+        <!-- Risk 4 — resolved -->
+        <div class="flex gap-3 bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="w-5 h-5 rounded-full bg-[#f0fdf4] border border-[#86efac] flex items-center justify-center text-[10px] text-[#16a34a] font-bold shrink-0 mt-0.5">✓</div>
+          <div class="min-w-0">
+            <div class="text-xs font-semibold mb-0.5">Page components co-located — no import leakage between pages</div>
+            <div class="text-[11px] text-[#6b6560] dark:text-[#9a9590]">Domain components (e.g. <code class="text-[#c15f3c]">ProtocolPanel/</code>, <code class="text-[#c15f3c]">MoHForm</code>) live inside <code class="text-[#c15f3c]">pages/session/components/</code> — never imported by other pages. Generic UI (buttons, modals, badges) lives in <code class="text-[#c15f3c]">components-ui/</code> — never imports page logic. This boundary prevents tangled cross-page dependencies as the codebase grows.</div>
+          </div>
+        </div>
+
+        <!-- Risk 5 — resolved -->
+        <div class="flex gap-3 bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="w-5 h-5 rounded-full bg-[#f0fdf4] border border-[#86efac] flex items-center justify-center text-[10px] text-[#16a34a] font-bold shrink-0 mt-0.5">✓</div>
+          <div class="min-w-0">
+            <div class="text-xs font-semibold mb-0.5">Type drift managed — <code>web/src/shared/types/</code> mirrored in <code>api/src/db/schema.ts</code></div>
+            <div class="text-[11px] text-[#6b6560] dark:text-[#9a9590]">Types are duplicated between <code class="text-[#c15f3c]">web/src/shared/types/</code> and <code class="text-[#c15f3c]">api/src/db/schema.ts</code> rather than a shared package — simpler to start. When drift becomes a real problem (new field breaks both services), extract to a local <code class="text-[#c15f3c]">packages/types/</code> pnpm workspace. Until then, keep it simple.</div>
+          </div>
+        </div>
+
+        <!-- Risk 6 — watch -->
+        <div class="flex gap-3 bg-white dark:bg-[#222220] border border-[#fca5a5] dark:border-[#7f1d1d]/60 rounded-xl p-4">
+          <div class="w-5 h-5 rounded-full bg-[#fef2f2] border border-[#fca5a5] flex items-center justify-center text-[10px] text-[#dc2626] font-bold shrink-0 mt-0.5">!</div>
+          <div class="min-w-0">
+            <div class="text-xs font-semibold mb-0.5">Watch: Render cold-start on free tier kills live WS</div>
+            <div class="text-[11px] text-[#6b6560] dark:text-[#9a9590]">Render's free tier spins down after 15 min of inactivity. A cold-start takes ~30s — fatal for a live trauma session. <strong>Mitigation:</strong> use Render's paid "Always On" flag (Starter plan, ~$7/mo) or implement a lightweight health-check ping from the frontend every 10 min to prevent spin-down during an active shift.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Env var split -->
+      <div class="text-xs font-semibold uppercase tracking-widest text-[#b1ada1] mb-3 mt-6">Environment Variable Split</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-base">⚛️</span>
+            <span class="text-xs font-semibold">web/.env</span>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#ece9e1] dark:bg-[#2a2825] text-[#b1ada1] ml-auto">bundled — public</span>
+          </div>
+          <div class="code-block" style="margin-top:0;font-size:10px">
+VITE_BACKEND_URL=https://medscript.onrender.com
+VITE_SUPABASE_URL=https://xxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...    <span style="color:#6b7280"># RLS-guarded, safe to expose</span>
+<span style="color:#6b7280"># no JWT_SECRET — auth verified server-side only</span>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-[#222220] border border-[#d8d2c8] dark:border-[#3a3835] rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-base">🎛</span>
+            <span class="text-xs font-semibold">Render — backend/.env</span>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-[#fef2f2] text-[#dc2626] ml-auto">server-only</span>
+          </div>
+          <div class="code-block" style="margin-top:0;font-size:10px">
+JWT_SECRET=super-secret-string                 <span style="color:#6b7280"># server-side only</span>
+SONIOX_API_KEY=soniox_live_...                 <span style="color:#6b7280"># never in web bundle</span>
+ANTHROPIC_API_KEY=sk-ant-...                   <span style="color:#6b7280"># never in web bundle</span>
+SUPABASE_SERVICE_ROLE_KEY=eyJ...               <span style="color:#6b7280"># bypasses RLS — never in web bundle</span>
+MONGODB_URI=mongodb+srv://...                  <span style="color:#6b7280"># never in web bundle</span>
+PORT=3001
+          </div>
+        </div>
+      </div>
+
+      <!-- Health checklist -->
+      <div class="mt-5 bg-[#f0fdf4] dark:bg-[#052e16]/30 border border-[#86efac] dark:border-[#166534]/40 rounded-xl p-4">
+        <div class="text-xs font-semibold text-[#16a34a] mb-3">Architecture Health Checklist</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-[11px] text-[#166534] dark:text-[#4ade80]">
+          <div>✅ No API keys exposed to browser</div>
+          <div>✅ JWT verified server-side on every API call</div>
+          <div>✅ WS proxy on always-on Render service</div>
+          <div>✅ RLS isolates hospital data on Supabase</div>
+          <div>✅ MongoDB for high-freq chunk writes</div>
+          <div>✅ One typed API client, not ad-hoc fetches</div>
+          <div>✅ components-ui/ has zero domain logic</div>
+          <div>✅ Page components co-located, never cross-imported</div>
+          <div class="text-[#f59e0b] dark:text-[#fbbf24]">⚠ Render free tier cold-start → use Always On</div>
+          <div class="text-[#f59e0b] dark:text-[#fbbf24]">⚠ Zustand store clears on hard refresh — persist JWT to localStorage</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="mt-20 pt-8 border-t border-[#d8d2c8] dark:border-[#3a3835] text-center text-[11px] text-[#b1ada1]">
+      MedScript Design System v2.0 · React SPA + Node/Express · components-ui/ + co-located page components
+    </div>
+  </main>
+</div>
+
+<script>
+// ─── Dark mode ────────────────────────────────────────────────────────────────
+const S={dark:false};
+function toggleDark(){
+  S.dark=!S.dark;
+  document.documentElement.classList.toggle('dark',S.dark);
+  document.getElementById('theme-icon').textContent=S.dark?'☀️':'🌙';
+  mermaid.initialize({...mermaidConfig(), theme:S.dark?'dark':'base'});
+  document.querySelectorAll('.mermaid[data-processed]').forEach(el=>{
+    el.removeAttribute('data-processed');el.innerHTML=el.getAttribute('data-src')||el.textContent;
+  });
+  mermaid.run();
+}
+
+// ─── Mermaid ─────────────────────────────────────────────────────────────────
+function mermaidConfig(){
+  return {
+    startOnLoad:true,
+    theme:'base',
+    themeVariables:{
+      primaryColor:'#fdf0eb',
+      primaryTextColor:'#1e1e1c',
+      primaryBorderColor:'#c15f3c',
+      lineColor:'#b1ada1',
+      secondaryColor:'#ece9e1',
+      tertiaryColor:'#f4f3ee',
+      background:'#f4f3ee',
+      mainBkg:'#f4f3ee',
+      nodeBorder:'#c15f3c',
+      clusterBkg:'#f4f3ee',
+      titleColor:'#1e1e1c',
+      edgeLabelBackground:'#f4f3ee',
+      fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+      fontSize:'13px',
+      actorBkg:'#fdf0eb',
+      actorBorder:'#c15f3c',
+      actorTextColor:'#1e1e1c',
+      signalColor:'#c15f3c',
+      signalTextColor:'#1e1e1c',
+      activationBkgColor:'#fdf0eb',
+      activationBorderColor:'#c15f3c',
+    },
+    er:{diagramPadding:20,useMaxWidth:true},
+    flowchart:{htmlLabels:true,curve:'basis'},
+    sequence:{mirrorActors:false,showSequenceNumbers:false},
+  };
+}
+
+mermaid.initialize(mermaidConfig());
+
+// ─── Role table ───────────────────────────────────────────────────────────────
+const ROLES=[
+  {name:'admin',       view:true, room:true, transcribe:true, sign:true, admin:true},
+  {name:'trauma_lead', view:true, room:true, transcribe:true, sign:false, admin:false},
+  {name:'nurse',       view:true, room:true, transcribe:true, sign:true, admin:false},
+  {name:'paramedic',   view:false,room:true, transcribe:true, sign:false, admin:false},
+  {name:'viewer',      view:true, room:false,transcribe:false,sign:false, admin:false},
+];
+function chk(v){return v?'<span style="color:#22c55e;font-size:13px">✓</span>':'<span style="color:#d8d2c8;font-size:13px">—</span>';}
+document.getElementById('role-table').innerHTML=ROLES.map(r=>`
+  <div class="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_1fr] text-[10px] px-4 py-2 border-b border-[#d8d2c8] dark:border-[#3a3835] last:border-0 items-center">
+    <div><code style="font-size:10px;font-family:monospace;background:#ece9e1;padding:1px 5px;border-radius:4px">${r.name}</code></div>
+    <div class="text-center">${chk(r.view)}</div>
+    <div class="text-center">${chk(r.room)}</div>
+    <div class="text-center">${chk(r.transcribe)}</div>
+    <div class="text-center">${chk(r.sign)}</div>
+    <div class="text-center">${chk(r.admin)}</div>
+  </div>`).join('');
+
+// ─── Nav scroll spy ───────────────────────────────────────────────────────────
+function scrollTo(id){
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+      const link=document.querySelector(`.nav-link[onclick*="${e.target.id}"]`);
+      if(link)link.classList.add('active');
+    }
+  });
+},{threshold:.3,rootMargin:'-60px 0px -50% 0px'});
+document.querySelectorAll('section[id]').forEach(s=>observer.observe(s));
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const first=document.querySelector('.nav-link');
+  if(first)first.classList.add('active');
+
+  // Waveform bar demo
+  const bars=[4,7,12,9,18,14,6,20,16,11,8,15,10,17,13,5,19,9,14,7,11,16,8,13,6,18,12,10,15,7];
+  document.querySelectorAll('.wv-host').forEach(host=>{
+    host.innerHTML=bars.map(h=>`<div style="width:3px;height:${h}px;border-radius:2px;background:#c15f3c;opacity:.85"></div>`).join('');
+  });
+});
+</script>
+</body>
+</html>

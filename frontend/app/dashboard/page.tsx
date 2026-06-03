@@ -1,46 +1,21 @@
-'use client'
+import { Logo } from "@/components/Logo";
 
-import { Window, WindowGroup } from '@/components/window'
-import { AppNav } from '@/components/AppNav'
-import { TranscriptPanel } from './transcript/TranscriptPanel'
-import { MoHForm } from './MoHForm'
-
-export default function App() {
+export default function DocsPage() {
   return (
-    <div className="h-screen flex flex-col bg-[#EDE8E1] dark:bg-[#141210] transition-colors duration-200">
-      <AppNav />
-      <div className="flex-1 flex flex-col gap-2 p-3 pt-[calc(3.5rem+0.75rem)] min-h-0">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 pt-14 text-center bg-[#FAF7F4] dark:bg-[#141210]">
+      <Logo size={36} />
 
-      {/* Row 1 — three equal panels */}
-        <WindowGroup className="flex-1 min-h-0">
-          <Window title="Overview" defaultMinimized={true}>
-            <div className="p-4 space-y-3">
-              <h2 className="text-sm font-semibold text-gray-700">Overview</h2>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                This panel shows a high-level summary of the current session.
-                You can minimize it to reclaim space, or maximize it to focus.
-              </p>
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                {['Active', 'Pending', 'Done', 'Total'].map((label, i) => (
-                  <div key={label} className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-                    <div className="text-lg font-bold text-gray-800">{(i + 1) * 12}</div>
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Window>
-
-          <Window title="Transcript">
-            <TranscriptPanel />
-          </Window>
-
-          <Window title="נספח ז">
-            <MoHForm />
-          </Window>
-        </WindowGroup>
-
+      <div className="flex flex-col items-center gap-2">
+        <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#C15F3C]">
+          Docs
+        </span>
+        <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-[#1A1A18] dark:text-[#F3EEE6]">
+          Documentation
+        </h1>
+        <p className="max-w-[38ch] text-[14px] leading-relaxed text-[#8A7E72] dark:text-[#9A8F82]">
+          Full developer and user documentation is on its way. Check back soon.
+        </p>
       </div>
-    </div>
-  )
+    </main>
+  );
 }

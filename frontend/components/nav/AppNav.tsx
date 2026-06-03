@@ -1,75 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {Moon, Sun, User, Settings, Bell} from "lucide-react";
+import { User, Settings } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/nav/ThemeToggle";
 import type { LucideIcon } from "lucide-react";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface NavLink {
-  href: string;
-  label: string;
-  hidden?: boolean;
-}
-
-interface NavAction {
-  id: string;
-  label?: string;
-  icon?: LucideIcon;
-  href?: string;
-  onClick?: () => void;
-  hidden?: boolean;
-}
-
-// Circle buttons — standalone rounded icon buttons like the theme toggle.
-// Add user avatar, settings, notifications, etc. here.
-interface NavCircle {
-  id: string;
-  icon: LucideIcon;
-  href?: string;
-  onClick?: () => void;
-  label: string; // aria-label
-  hidden?: boolean;
-}
+import type { NavLink, NavAction, NavCircle } from "./navTypes";
 
 // ─── Context configs ──────────────────────────────────────────────────────────
 // Each context defines which links appear on the left and which buttons on the right.
 // Set hidden: true on any item to suppress it without deleting it.
 
-const PUBLIC_LINKS: NavLink[] = [
+const PUBLIC_LEFT_LINKS: NavLink[] = [
   { href: "/",      label: "Home"  },
   { href: "/about", label: "About" },
-  { href: "/docs",  label: "Docs"  },
+  { href: "/guides",  label: "Guides"  },
 ];
 
-const PUBLIC_ACTIONS: NavAction[] = [
+const PUBLIC_RIGHT_LINKS: NavAction[] = [
   { id: "login",    label: "Login",    href: "/login"    },
   { id: "register", label: "Register", href: "/register" },
 ];
 
-// Shown when the user is inside the app (dashboard, etc.)
-const APP_LINKS: NavLink[] = [
+
+const PUBLIC_CIRCLES: NavCircle[] = [];
+
+const APP_LEFT_LINKS: NavLink[] = [
   { href: "/dashboard", label: "Dashboard" },
-  // { href: "/patients", label: "Patients" },
-  // { href: "/settings",  label: "Settings"  },
+  { href: "/session", label: "New Session" },
 ];
 
-const APP_ACTIONS: NavAction[] = [
-  // { id: "notifications", icon: Bell, href: "/notifications" },
+const APP_RIGHT_LINKS: NavAction[] = [
   { id: "logout", label: "Logout", href: "/login" },
 ];
 
-// Circle icon buttons per context.
-const PUBLIC_CIRCLES: NavCircle[] = [
-  // not logged in — no circle buttons
-];
-
 const APP_CIRCLES: NavCircle[] = [
-  { id: "bell",     icon: Bell,     href: "/notifications", label: "Notifications" },
   { id: "settings", icon: Settings, href: "/settings",      label: "Settings"      },
   { id: "user",     icon: User,     href: "/profile",       label: "Profile"       },
 ];
@@ -96,45 +64,34 @@ const spring = { type: "spring" as const, stiffness: 500, damping: 32, mass: 0.8
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+const AUTH_PATHS   = ["/login", "/register"];
+const APP_PATHS    = ["/dashboard", "/session", "/settings", "/profile", "/notifications"];
+
 export function AppNav() {
   const pathname = usePathname();
-  const isAuth = pathname?.startsWith("/login") || pathname?.startsWith("/register");
-  const isApp  = pathname?.startsWith("/dashboard"); // extend as needed
 
+  const isAuth   = AUTH_PATHS.some(p => pathname?.startsWith(p));
+  const isApp    = APP_PATHS.some(p => pathname?.startsWith(p));
   const isPublic = !isAuth && !isApp;
 
-  const links   = isApp ? APP_LINKS   : PUBLIC_LINKS;
-  const actions = isApp ? APP_ACTIONS : PUBLIC_ACTIONS;
+  const left_links   = isApp ? APP_LEFT_LINKS   : PUBLIC_LEFT_LINKS;
+  const right_links = isApp ? APP_RIGHT_LINKS : PUBLIC_RIGHT_LINKS;
   const circles = isApp ? APP_CIRCLES : PUBLIC_CIRCLES;
-
-  const [dark, setDark] = useState(() => {
-    if (typeof window === "undefined") return true;
-    const stored = localStorage.getItem("ms-theme");
-    return stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
 
   // Public pages are always dark — reset whenever the user lands on one.
   useEffect(() => {
     if (isPublic) {
-      setDark(true);
       document.documentElement.classList.add("dark");
       localStorage.setItem("ms-theme", "dark");
     }
   }, [isPublic]);
-
-  function toggleTheme() {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("ms-theme", next ? "dark" : "light");
-  }
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center gap-3 px-4 sm:px-8">
       {/* Logo */}
       <Link href="/" className="mr-1 shrink-0"> <Logo size={22} /></Link>
 
-      {/* Left: page links — hidden on auth pages */}
+      {/* Left: page left_links — hidden on auth pages */}
       <AnimatePresence initial={false}>
         {!isAuth && (
           <motion.nav
@@ -145,7 +102,7 @@ export function AppNav() {
             transition={spring}
             className={`${pill} hidden sm:flex`}
           >
-            {links.filter(l => !l.hidden).map(({ href, label }) => {
+            {left_links.filter(l => !l.hidden).map(({ href, label }) => {
               const active = pathname === href;
               return (
                 <Link key={href} href={href} className="relative rounded-full px-4 py-1.5">
@@ -175,7 +132,7 @@ export function AppNav() {
       {/* Right: auth pages get the animated segmented pill */}
       {isAuth ? (
         <div className={`${pill} text-[13px] font-semibold`}>
-          {actions.filter(a => !a.hidden).map(({ id, label, href }) => {
+          {right_links.filter(a => !a.hidden).map(({ id, label, href }) => {
             const active = href ? pathname?.startsWith(href) : false;
             return (
               <Link key={id} href={href!} className="relative rounded-full px-4 py-1.5">
@@ -200,8 +157,8 @@ export function AppNav() {
       ) : (
         /* All other pages: action buttons in the same pill */
         <div className={pill}>
-          {actions.filter(a => !a.hidden).map(({ id, label, icon: Icon, href, onClick }, i) => {
-            const isPrimary = i === actions.filter(a => !a.hidden).length - 1;
+          {right_links.filter(a => !a.hidden).map(({ id, label, icon: Icon, href, onClick }, i) => {
+            const isPrimary = i === right_links.filter(a => !a.hidden).length - 1;
             const classes = Icon && !label ? iconBtn : isPrimary ? btnPrimary : btn;
             return href ? (
               <Link key={id} href={href} className={classes}>
@@ -232,16 +189,7 @@ export function AppNav() {
       )}
 
       {/* Theme toggle — hidden on public pages (always dark there) */}
-      {!isPublic && (
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
-          className={iconBtn}
-        >
-          {dark ? <Sun size={17} strokeWidth={2} /> : <Moon size={17} strokeWidth={2} />}
-        </button>
-      )}
+      {!isPublic && <ThemeToggle />}
 
     </header>
   );

@@ -58,7 +58,7 @@
     "git-widget-placeholder": "main",
     "javascript.preferred.runtime.type.id": "node",
     "js.debugger.nextJs.config.created.client": "true",
-    "last_opened_file_path": "/Users/andreibeloziorove/git/frontend/app/dashboard",
+    "last_opened_file_path": "/Users/andreibeloziorove/git/WEB-14-mediscribe/frontend/app/dashboard",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -66,8 +66,8 @@
     "nodejs_interpreter_path": "node",
     "nodejs_package_manager_path": "npm",
     "npm.dev.executor": "Run",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
-    "ts.external.directory.path": "/Users/andreibeloziorove/git/frontend/node_modules/typescript/lib",
+    "settings.editor.selected.configurable": "editor.preferences.fonts.default",
+    "ts.external.directory.path": "/Applications/WebStorm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -89,6 +89,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/components/nav" />
       <recent name="$PROJECT_DIR$/app/dashboard/transcript" />
       <recent name="$PROJECT_DIR$/app/(auth)" />
       <recent name="$PROJECT_DIR$/app" />
@@ -133,7 +134,7 @@
       <workItem from="1780472963128" duration="1884000" />
       <workItem from="1780477286747" duration="1393000" />
       <workItem from="1780499655120" duration="7308000" />
-      <workItem from="1780509380023" duration="38000" />
+      <workItem from="1780509380023" duration="3991000" />
     </task>
     <servers />
   </component>

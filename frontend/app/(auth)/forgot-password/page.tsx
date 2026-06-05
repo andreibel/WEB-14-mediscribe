@@ -2,17 +2,15 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Mail, Lock } from "lucide-react";
+import { Mail, MailCheck } from "lucide-react";
 import { TextField } from "@/components/ui/TextField";
 import { Button } from "@/components/ui/Button";
-import { Checkbox } from "@/components/ui/Checkbox";
 import { createClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
-  const router = useRouter();
+export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -21,10 +19,13 @@ export default function LoginPage() {
 
     const form = new FormData(e.currentTarget);
     const email = String(form.get("email") ?? "");
-    const password = String(form.get("password") ?? "");
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      // After they click the email link, land on the callback route, which
+      // exchanges the token and forwards to /reset-password.
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    });
 
     if (error) {
       setError(error.message);
@@ -32,17 +33,37 @@ export default function LoginPage() {
       return;
     }
 
-    // Session cookie is now set — go to the app. refresh() re-runs Server Components.
-    router.push("/dashboard");
-    router.refresh();
+    setSentTo(email);
+    setLoading(false);
+  }
+
+  if (sentTo) {
+    return (
+      <div className="flex flex-col items-center text-center">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#C15F3C]/12 text-[#C15F3C]">
+          <MailCheck size={24} strokeWidth={2} />
+        </div>
+        <h2 className="text-[22px] font-extrabold tracking-[-0.02em]">Check your email</h2>
+        <p className="mt-2 max-w-[34ch] text-[13.5px] leading-relaxed text-[#8A7E72] dark:text-[#9A8F82]">
+          If an account exists for <span className="font-semibold text-[#3A332D] dark:text-[#CFC6BB]">{sentTo}</span>,
+          a password reset link is on its way. It may take a minute (check spam too).
+        </p>
+        <Link
+          href="/login"
+          className="mt-5 text-[13px] font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]"
+        >
+          Back to sign in
+        </Link>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col">
       <header className="mb-5">
-        <h2 className="text-[22px] font-extrabold tracking-[-0.02em]">Welcome back</h2>
+        <h2 className="text-[22px] font-extrabold tracking-[-0.02em]">Reset your password</h2>
         <p className="mt-1 text-[13.5px] text-[#8A7E72] dark:text-[#9A8F82]">
-          Sign in to your mediscribe workspace.
+          Enter your work email and we&apos;ll send you a reset link.
         </p>
       </header>
 
@@ -61,46 +82,18 @@ export default function LoginPage() {
           autoComplete="email"
           required
         />
-        <TextField
-          label="Password"
-          name="password"
-          type="password"
-          icon={Lock}
-          placeholder="••••••••"
-          autoComplete="current-password"
-          required
-        />
-
-        <div className="flex items-center justify-between">
-          <Checkbox name="remember" label="Remember me" />
-          <Link
-            href="/forgot-password"
-            className="text-[12.5px] font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]"
-          >
-            Forgot password?
-          </Link>
-        </div>
-
         <Button type="submit" fullWidth loading={loading} className="mt-1">
-          {loading ? "Signing in…" : "Sign in"}
+          {loading ? "Sending link…" : "Send reset link"}
         </Button>
       </form>
 
-      <div className="my-4 flex items-center gap-3 text-[11px] font-medium uppercase tracking-wider text-[#A89D90] dark:text-[#6E665D]">
-        <span className="h-px flex-1 bg-[#E8E2D9] dark:bg-[#2E2A27]" />
-        or
-        <span className="h-px flex-1 bg-[#E8E2D9] dark:bg-[#2E2A27]" />
-      </div>
-
-
-
       <p className="mt-5 text-center text-[13px] text-[#8A7E72] dark:text-[#9A8F82]">
-        New to mediscribe?{" "}
+        Remembered it?{" "}
         <Link
-          href="/register"
+          href="/login"
           className="font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]"
         >
-          Create an account
+          Sign in
         </Link>
       </p>
     </div>

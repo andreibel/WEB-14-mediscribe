@@ -4,7 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1a81c115-c9d8-4499-9232-ca1525645a00" name="Changes" comment="" />
+    <list default="true" id="1a81c115-c9d8-4499-9232-ca1525645a00" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/components/ui/FuzzyText.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/login/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/register/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/register/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/not-found.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/not-found.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/nav/AppNav.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/nav/AppNav.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/nav/navTypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/components/nav/navTypes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,24 +30,25 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="TypeScript File" />
+        <option value="TypeScript JSX File" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "andreibel"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;andreibel&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "git@github.com:andreibel/WEB-14-mediscribe.git",
-    "accountId": "0995409c-6dfb-46f4-a021-f6c283c8bb51"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:andreibel/WEB-14-mediscribe.git&quot;,
+    &quot;accountId&quot;: &quot;0995409c-6dfb-46f4-a021-f6c283c8bb51&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4,
   &quot;fromUser&quot;: false
@@ -66,8 +77,8 @@
     "nodejs_interpreter_path": "node",
     "nodejs_package_manager_path": "npm",
     "npm.dev.executor": "Run",
-    "settings.editor.selected.configurable": "editor.preferences.fonts.default",
-    "ts.external.directory.path": "/Applications/WebStorm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
+    "settings.editor.selected.configurable": "preferences.keymap",
+    "ts.external.directory.path": "/Users/andreibeloziorove/git/WEB-14-mediscribe/frontend/node_modules/typescript/lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -134,7 +145,9 @@
       <workItem from="1780472963128" duration="1884000" />
       <workItem from="1780477286747" duration="1393000" />
       <workItem from="1780499655120" duration="7308000" />
-      <workItem from="1780509380023" duration="3991000" />
+      <workItem from="1780509380023" duration="5680000" />
+      <workItem from="1780597184926" duration="2541000" />
+      <workItem from="1780655838399" duration="5783000" />
     </task>
     <servers />
   </component>

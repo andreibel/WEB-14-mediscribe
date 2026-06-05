@@ -2,12 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Mail, Lock, User, Stethoscope } from "lucide-react";
 import { TextField } from "@/components/ui/TextField";
 import { SelectField } from "@/components/ui/SelectField";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
+import { createClient } from "@/lib/supabase/client";
 
 const ROLES = [
   { value: "physician", label: "Physician" },
@@ -18,15 +20,48 @@ const ROLES = [
 ];
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError(null);
+    setNotice(null);
     setLoading(true);
-    // TODO: wire to your registration endpoint
-    await new Promise((r) => setTimeout(r, 1100));
-    setLoading(false);
+
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email") ?? "");
+    const name = String(form.get("name") ?? "");
+    const role = String(form.get("role") ?? "nurse");
+    const pwd = String(form.get("password") ?? "");
+
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password: pwd,
+      // These land in raw_user_meta_data → read by the handle_new_user() trigger
+      // to populate the public.users profile row.
+      options: { data: { name, role } },
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!data.session) {
+      // Email confirmation is ON — no session yet. User must confirm via email.
+      setNotice("Account created. Check your email to confirm, then sign in.");
+      setLoading(false);
+      return;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -39,6 +74,16 @@ export default function RegisterPage() {
       </header>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
+        {error && (
+          <p className="rounded-lg bg-[#C0492B]/10 px-3 py-2 text-[13px] font-medium text-[#C0492B] dark:text-[#E08A6E]">
+            {error}
+          </p>
+        )}
+        {notice && (
+          <p className="rounded-lg bg-[#10b981]/10 px-3 py-2 text-[13px] font-medium text-[#0e7a5f] dark:text-[#34d399]">
+            {notice}
+          </p>
+        )}
         <TextField
           label="Full name"
           name="name"

@@ -1,10 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
-import { Logo } from "@/components/Logo";
-
-const spring = { type: "spring", stiffness: 500, damping: 32, mass: 0.8 };
+import FuzzyText from "@/components/ui/FuzzyText";
 
 const links = [
   { href: "/", label: "Home" },
@@ -14,53 +12,57 @@ const links = [
   { href: "/register", label: "Register" },
 ];
 
+// FuzzyText draws on a <canvas>, whose ctx.font does NOT support CSS clamp()/rem
+// function values — only a numeric px size renders reliably. So compute a
+// responsive number ourselves instead of passing a clamp() string.
+function useResponsiveFontSize(min: number, vw: number, max: number) {
+  const [size, setSize] = useState(max);
+  useEffect(() => {
+    const update = () => setSize(Math.max(min, Math.min(max, window.innerWidth * (vw / 100))));
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [min, vw, max]);
+  return size;
+}
+
 export default function NotFound() {
+  const fontSize = useResponsiveFontSize(96, 24, 260);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 pt-14 text-center bg-[#FAF7F4] dark:bg-[#141210]">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={spring}
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 pt-14 text-center bg-[#FAF7F4] dark:bg-[#141210]">
+      <FuzzyText
+        fontSize={fontSize}
+        fontWeight={900}
+        color="#C15F3C"
+        fps={20}
+        baseIntensity={0.2}
+        hoverIntensity={0.5}
+        enableHover
       >
-        <Logo size={36} />
-      </motion.div>
+        404
+      </FuzzyText>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...spring, delay: 0.05 }}
-        className="flex flex-col items-center gap-2"
-      >
-        <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#C15F3C]">
-          404
-        </span>
-        <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-[#1A1A18] dark:text-[#F3EEE6]">
-          Page not found
+      <div className="flex flex-col items-center gap-3">
+        <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-[#1A1A18] dark:text-[#F3EEE6] sm:text-3xl">
+          Page Not Found
         </h1>
-        <p className="max-w-[28ch] text-[14px] text-[#8A7E72] dark:text-[#9A8F82]">
-          This page doesn't exist or was moved.
+        <p className="max-w-[42ch] text-[15px] leading-relaxed text-[#8A7E72] dark:text-[#9A8F82] sm:text-base">
+          Oops! The page you&apos;re looking for doesn&apos;t exist. It might have been moved or deleted.
         </p>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.82 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ ...spring, delay: 0.1 }}
-        className="flex rounded-full bg-black/5 p-1 text-[13px] font-semibold ring-1 ring-black/8 dark:bg-white/8 dark:ring-white/10"
-      >
+      <nav className="flex flex-wrap items-center justify-center gap-2">
         {links.map(({ href, label }) => (
-          <Link key={href} href={href} className="relative rounded-full px-4 py-1.5">
-            <motion.span
-              layoutId="nav-bubble"
-              className="absolute inset-0 rounded-full opacity-0"
-              transition={spring}
-            />
-            <span className="relative z-10 text-[#4A3F35]/75 transition-colors hover:text-[#4A3F35] dark:text-[#9A8F82] dark:hover:text-[#D4C9BE]">
-              {label}
-            </span>
+          <Link
+            key={href}
+            href={href}
+            className="rounded-full px-4 py-1.5 text-[13px] font-semibold text-[#4A3F35]/80 ring-1 ring-black/8 transition-colors hover:bg-black/5 hover:text-[#4A3F35] dark:text-[#9A8F82] dark:ring-white/10 dark:hover:bg-white/8 dark:hover:text-[#D4C9BE]"
+          >
+            {label}
           </Link>
         ))}
-      </motion.div>
+      </nav>
     </main>
   );
 }

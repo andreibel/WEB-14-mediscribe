@@ -30,7 +30,7 @@ const PUBLIC_CIRCLES: NavCircle[] = [];
 
 const APP_LEFT_LINKS: NavLink[] = [
   {href: "/dashboard", label: "Dashboard"},
-  {href: "/session", label: "New Session"},
+  {href: "/dashboard", label: "New Session"},
 ];
 
 // No href → rendered as a button; the onClick is injected in the component.

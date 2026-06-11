@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Mic, ChevronLeft, CheckCircle2, AlertCircle, SkipForward } from 'lucide-react'
+import { Mic, ChevronLeft, CheckCircle2, SkipForward } from 'lucide-react'
 import { STAFF_DB, fuzzyMatchStaff } from './staffDb'
 import type { EnrollmentSlot } from './types'
 
@@ -138,7 +138,7 @@ function SlotRow({
           {/* What was heard */}
           {slot.detectedText && (
             <p className="text-[10px] text-[#6b6662] truncate italic mb-0.5">
-              "{slot.detectedText}"
+              &ldquo;{slot.detectedText}&rdquo;
             </p>
           )}
           {isCurrent && !slot.detectedText && (

@@ -1,11 +1,15 @@
 # MediScribe — Database Design
 > Postgres · Supabase · JSONB
+>
+> **Scope:** course project / PoC. Kept deliberately lean — plain tables, no
+> partitioning, no audit log, simple owner-based RLS. See
+> [Deliberately omitted](#deliberately-omitted) for what was cut and why.
 
 ---
 
 ## App Overview
 
-**MediScribe** is a real-time trauma team transcription system for Ziv Medical Center.  
+**MediScribe** is a real-time trauma team transcription system for Ziv Medical Center.
 It captures live audio via Soniox WebSocket STT, assigns speakers to staff members, and produces a Ministry of Health Appendix Z (נספח ז) resuscitation form.
 
 ### Core flows
@@ -16,20 +20,33 @@ It captures live audio via Soniox WebSocket STT, assigns speakers to staff membe
 
 ---
 
+## Status
+
+| Table | State |
+|---|---|
+| `users` | ✅ created |
+| `sessions` | ✅ created |
+| `transcript_segments` | ✅ created |
+| `speaker_mappings` | 📝 planned |
+| `enrollment_slots` | 📝 planned |
+| `moh_forms` | 📝 planned |
+
+Helper function `is_admin()` and the `touch_updated_at()` trigger are live.
+
+---
+
 ## Entity Map
 
 ```
 auth.users (Supabase managed)
   └─ users (1:1)  ←── single table: auth + staff directory merged
-        │ created_by / assigned_by / actor_id
-        ├─► sessions
-        │       │ session_id
-        │       ├─► transcript_segments   (append-only, partitioned)
-        │       ├─► speaker_mappings      (token → user, upserted live)
-        │       ├─► enrollment_slots      (roll-call audit trail)
-        │       └─► moh_forms
-        │
-        └─► audit_log                     (immutable, partitioned)
+        │ created_by / assigned_by
+        └─► sessions
+                │ session_id
+                ├─► transcript_segments   (append-only)
+                ├─► speaker_mappings      (token → user, upserted live)
+                ├─► enrollment_slots      (roll-call)
+                └─► moh_forms
 
 users ◄── user_id ── speaker_mappings
       ◄── user_id ── enrollment_slots
@@ -40,8 +57,8 @@ users ◄── user_id ── speaker_mappings
 ## Tables
 
 ### `users`
-Single table for both authentication and staff directory.  
-Every person who appears in a transcript **is** a system user — there is no reason to split them.  
+Single table for both authentication and staff directory.
+Every person who appears in a transcript **is** a system user — there is no reason to split them.
 Extends Supabase `auth.users` 1-to-1.
 
 | Column | Type | Notes |
@@ -59,8 +76,8 @@ Extends Supabase `auth.users` 1-to-1.
 | `created_at` | `timestamptz` | |
 | `updated_at` | `timestamptz` | Auto-updated via trigger |
 
-**Why merged?**  
-The old design had `profiles` (auth) and `staff_members` (directory) as separate tables — meaning a doctor had two rows and two different IDs. Every FK that needed "who is this person" had to decide which table to point at. Merging gives one ID per person used consistently across `sessions`, `speaker_mappings`, `enrollment_slots`, `moh_forms`, and `audit_log`.
+**Why merged?**
+The old design had `profiles` (auth) and `staff_members` (directory) as separate tables — meaning a doctor had two rows and two different IDs. Every FK that needed "who is this person" had to decide which table to point at. Merging gives one ID per person used consistently across `sessions`, `speaker_mappings`, `enrollment_slots`, and `moh_forms`.
 
 **Seed data**
 
@@ -83,70 +100,45 @@ One row per trauma event / resuscitation session.
 |---|---|---|
 | `id` | `uuid` PK | |
 | `created_by` | `uuid` | FK → `users(id)` |
-| `department` | `text` | e.g. `מיון טראומה` |
+| `department` | `text` | Optional |
 | `status` | `text` | `active` · `paused` · `ended` · `error` |
 | `started_at` | `timestamptz` | Set on `connect()` |
 | `ended_at` | `timestamptz` | Set on `disconnect()` |
 | `segment_count` | `int` | Denormalized counter |
 | `unique_speaker_count` | `int` | Denormalized counter |
-| `soniox_model` | `text` | `stt-rt-v4` |
+| `soniox_model` | `text` | STT model used, default `stt-rt-v4` |
 | `notes` | `text` | Free-text |
 | `created_at` | `timestamptz` | |
-| `updated_at` | `timestamptz` | |
+| `updated_at` | `timestamptz` | Auto-updated via trigger |
 
 ---
 
 ### `transcript_segments`
-Append-only. Partitioned by `created_at` for query performance at volume.  
-Uses a **hybrid layout**: hot query fields as real columns, full Soniox payload in JSONB.
+Append-only. **Plain table** — no partitioning (PoC volume doesn't need it).
+**Only finalized segments are stored.** Partial (in-progress) tokens live client-side as live preview and are never persisted — so there's no `is_final` column: every row here is final by definition.
+**Flat column layout** — every field is a real, typed, indexable column. No JSONB: a segment is a small, stable record.
 
 | Column | Type | Notes |
 |---|---|---|
 | `session_id` | `uuid` | FK → `sessions(id)` · part of PK |
 | `seq` | `bigint` | Identity, part of PK — insertion order |
-| `speaker_token` | `varchar(10)` | `S1` … `S9` — promoted for btree index |
-| `start_ms` | `bigint` | ms from session start — promoted for timeline ORDER BY |
-| `is_final` | `boolean` | Promoted — filter partials on read |
-| `created_at` | `timestamptz` | Partition key |
-| `payload` | `jsonb` | Full Soniox token blob (see shape below) |
+| `speaker_token` | `varchar(10)` | `S1` … `S9` |
+| `text` | `text` | Transcribed segment text (finalized) |
+| `start_ms` | `bigint` | ms from session start — timeline ORDER BY |
+| `created_at` | `timestamptz` | |
 
-**`payload` shape**
-```jsonc
-{
-  "id":            "m1",
-  "text":          "מתחילים פרוטוקול טראומה — כולם לתפקידים.",
-  "speaker_token": "S1",
-  "start_ms":      67278000,
-  "is_final":      true,
-  "words":         [],          // reserved — future per-word timestamps
-  "language":      "he",        // future Soniox field
-  "confidence":    0.94         // future Soniox field
-}
-```
-
-**Why hybrid?**  
-`speaker_token`, `start_ms`, and `is_final` are filtered/sorted in every timeline query — btree indexes on real columns are significantly faster than GIN expression scans at this volume. Everything else lives in `payload` and absorbs future Soniox schema changes without migrations.
+**PK:** `(session_id, seq)`
 
 **Indexes**
 ```sql
--- timeline read (most common)
-create index on transcript_segments (session_id, start_ms);
--- per-speaker filtering
-create index on transcript_segments (session_id, speaker_token);
--- arbitrary payload queries
-create index on transcript_segments using gin (payload);
-```
-
-**Partitions** (add annually)
-```
-transcript_segments_2025  → 2025-01-01 … 2026-01-01
-transcript_segments_2026  → 2026-01-01 … 2027-01-01
+create index on transcript_segments (session_id, start_ms);      -- timeline read
+create index on transcript_segments (session_id, speaker_token); -- per-speaker
 ```
 
 ---
 
-### `speaker_mappings`
-Maps a Soniox speaker token to a user for a given session.  
+### `speaker_mappings` _(planned)_
+Maps a Soniox speaker token to a user for a given session.
 Upserted on every assignment (enrollment confirm or manual picker).
 
 | Column | Type | Notes |
@@ -163,8 +155,8 @@ Upserted on every assignment (enrollment confirm or manual picker).
 
 ---
 
-### `enrollment_slots`
-Full audit trail of the roll-call speaker identification process.
+### `enrollment_slots` _(planned)_
+Audit trail of the roll-call speaker identification process.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -193,9 +185,9 @@ Full audit trail of the roll-call speaker identification process.
 
 ---
 
-### `moh_forms`
-Ministry of Health Appendix Z (נספח ז) — resuscitation documentation form.  
-~70 fields grouped into JSONB blocks. Signed forms are immutable.
+### `moh_forms` _(planned)_
+Ministry of Health Appendix Z (נספח ז) — resuscitation documentation form.
+~70 fields grouped into JSONB blocks. Signed forms are immutable (enforced via RLS).
 
 | Column | Type | Notes |
 |---|---|---|
@@ -310,61 +302,6 @@ Ministry of Health Appendix Z (נספח ז) — resuscitation documentation form
 ```sql
 create index on moh_forms (session_id);
 create index on moh_forms (created_by);
-create index on moh_forms using gin (patient);
-create index on moh_forms using gin (summary);
-```
-
----
-
-### `audit_log`
-Immutable append-only log of every entity mutation. Medical compliance requires this never be updated or deleted.  
-Partitioned annually.
-
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `bigint` | Generated identity |
-| `occurred_at` | `timestamptz` | Partition key |
-| `actor_id` | `uuid` | FK → `users(id)` · null = system |
-| `session_id` | `uuid` | FK → `sessions(id)` · null if not session-scoped |
-| `entity_type` | `text` | See table below |
-| `entity_id` | `text` | Stringified PK of the changed row |
-| `action` | `text` | See table below |
-| `before_state` | `jsonb` | Row snapshot before change · null on create |
-| `after_state` | `jsonb` | Row snapshot after change · null on delete |
-| `meta` | `jsonb` | IP, user agent, request ID, etc. |
-
-**`entity_type` values**
-
-| entity_type | entity_id |
-|---|---|
-| `session` | session UUID |
-| `speaker_mapping` | mapping UUID |
-| `enrollment_slot` | slot UUID |
-| `moh_form` | form UUID |
-| `user` | user UUID |
-
-**`action` values**
-
-| Domain | Actions |
-|---|---|
-| Generic | `create` · `update` · `delete` |
-| Session | `session.started` · `session.paused` · `session.resumed` · `session.stopped` |
-| Speaker | `speaker.assigned` · `speaker.unassigned` · `speaker.reassigned` |
-| Enrollment | `enrollment.started` · `enrollment.slot_confirmed` · `enrollment.skipped` · `enrollment.finished` |
-| Form | `form.saved` · `form.signed` · `form.printed` |
-| Auth | `auth.login` · `auth.logout` · `auth.failed` |
-
-**Partitions**
-```
-audit_log_2025  → 2025-01-01 … 2026-01-01
-audit_log_2026  → 2026-01-01 … 2027-01-01
-```
-
-**Indexes**
-```sql
-create index on audit_log (session_id, occurred_at desc);
-create index on audit_log (actor_id,   occurred_at desc);
-create index on audit_log (entity_type, entity_id);
 ```
 
 ---
@@ -373,10 +310,41 @@ create index on audit_log (entity_type, entity_id);
 
 ```sql
 -- ─────────────────────────────────────────────────────────────────
--- EXTENSIONS
+-- EXTENSIONS  (already installed on Supabase)
 -- ─────────────────────────────────────────────────────────────────
-create extension if not exists "pgcrypto";
-create extension if not exists "uuid-ossp";
+-- pgcrypto (gen_random_uuid) and uuid-ossp live in the `extensions` schema.
+
+-- ─────────────────────────────────────────────────────────────────
+-- HELPERS
+-- ─────────────────────────────────────────────────────────────────
+create or replace function public.touch_updated_at()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+-- admin check as SECURITY DEFINER so it bypasses RLS on users
+-- (avoids recursive policy evaluation and re-checks per row)
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.users
+    where id = (select auth.uid()) and role = 'admin'
+  );
+$$;
+
+revoke all on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
 
 -- ─────────────────────────────────────────────────────────────────
 -- USERS  (auth + staff directory merged)
@@ -417,34 +385,26 @@ create table public.sessions (
   updated_at           timestamptz not null default now()
 );
 
+create index on public.sessions (created_by, started_at desc);
+
 -- ─────────────────────────────────────────────────────────────────
--- TRANSCRIPT SEGMENTS  (hybrid layout + partitioned)
+-- TRANSCRIPT SEGMENTS  (flat columns, plain table)
 -- ─────────────────────────────────────────────────────────────────
 create table public.transcript_segments (
   session_id    uuid        not null references public.sessions(id) on delete cascade,
   seq           bigint      not null generated always as identity,
   speaker_token varchar(10) not null,
+  text          text        not null,
   start_ms      bigint      not null,
-  is_final      boolean     not null,
   created_at    timestamptz not null default now(),
-  payload       jsonb       not null,
   primary key (session_id, seq)
-) partition by range (created_at);
-
-create table transcript_segments_2025
-  partition of public.transcript_segments
-  for values from ('2025-01-01') to ('2026-01-01');
-
-create table transcript_segments_2026
-  partition of public.transcript_segments
-  for values from ('2026-01-01') to ('2027-01-01');
+);
 
 create index on public.transcript_segments (session_id, start_ms);
 create index on public.transcript_segments (session_id, speaker_token);
-create index on public.transcript_segments using gin (payload);
 
 -- ─────────────────────────────────────────────────────────────────
--- SPEAKER MAPPINGS
+-- SPEAKER MAPPINGS  (planned)
 -- ─────────────────────────────────────────────────────────────────
 create table public.speaker_mappings (
   id            uuid        primary key default gen_random_uuid(),
@@ -458,7 +418,7 @@ create table public.speaker_mappings (
 );
 
 -- ─────────────────────────────────────────────────────────────────
--- ENROLLMENT SLOTS
+-- ENROLLMENT SLOTS  (planned)
 -- ─────────────────────────────────────────────────────────────────
 create table public.enrollment_slots (
   id             uuid        primary key default gen_random_uuid(),
@@ -476,7 +436,7 @@ create table public.enrollment_slots (
 );
 
 -- ─────────────────────────────────────────────────────────────────
--- MOH FORMS
+-- MOH FORMS  (planned)
 -- ─────────────────────────────────────────────────────────────────
 create table public.moh_forms (
   id                uuid      primary key default gen_random_uuid(),
@@ -499,48 +459,10 @@ create table public.moh_forms (
 
 create index on public.moh_forms (session_id);
 create index on public.moh_forms (created_by);
-create index on public.moh_forms using gin (patient);
-create index on public.moh_forms using gin (summary);
-
--- ─────────────────────────────────────────────────────────────────
--- AUDIT LOG  (immutable, partitioned)
--- ─────────────────────────────────────────────────────────────────
-create table public.audit_log (
-  id           bigint      primary key generated always as identity,
-  occurred_at  timestamptz not null default now(),
-  actor_id     uuid        references public.users(id),
-  session_id   uuid        references public.sessions(id),
-  entity_type  text        not null,
-  entity_id    text        not null,
-  action       text        not null,
-  before_state jsonb,
-  after_state  jsonb,
-  meta         jsonb       not null default '{}'::jsonb
-) partition by range (occurred_at);
-
-create table audit_log_2025
-  partition of public.audit_log
-  for values from ('2025-01-01') to ('2026-01-01');
-
-create table audit_log_2026
-  partition of public.audit_log
-  for values from ('2026-01-01') to ('2027-01-01');
-
-create index on public.audit_log (session_id,  occurred_at desc);
-create index on public.audit_log (actor_id,    occurred_at desc);
-create index on public.audit_log (entity_type, entity_id);
 
 -- ─────────────────────────────────────────────────────────────────
 -- TRIGGERS — auto updated_at
 -- ─────────────────────────────────────────────────────────────────
-create or replace function public.touch_updated_at()
-returns trigger language plpgsql as $$
-begin
-  new.updated_at = now();
-  return new;
-end;
-$$;
-
 create trigger trg_users_updated_at
   before update on public.users
   for each row execute function public.touch_updated_at();
@@ -558,6 +480,10 @@ create trigger trg_moh_forms_updated_at
 
 ## Row Level Security
 
+Owner-based throughout: you see your own rows, admin sees everything. The
+`is_admin()` SECURITY DEFINER helper is called instead of an inline subquery so
+it evaluates once per query (not per row) and doesn't recurse on `users`' own RLS.
+
 ```sql
 -- ── users ─────────────────────────────────────────────────────────
 alter table public.users enable row level security;
@@ -566,64 +492,56 @@ create policy "own row"
   on public.users for all
   using (auth.uid() = id);
 
-create policy "admin reads all"
-  on public.users for select
-  using (exists (
-    select 1 from public.users where id = auth.uid() and role = 'admin'
-  ));
-
-create policy "all authenticated can read directory"
+create policy "authenticated reads directory"
   on public.users for select
   using (auth.uid() is not null and active = true);
+
+create policy "admin reads all"
+  on public.users for select
+  to authenticated
+  using (public.is_admin());
 
 -- ── sessions ──────────────────────────────────────────────────────
 alter table public.sessions enable row level security;
 
 create policy "session owner or admin"
   on public.sessions for all
-  using (
-    created_by = auth.uid()
-    or exists (select 1 from public.users where id = auth.uid() and role = 'admin')
-  );
+  to authenticated
+  using      (created_by = (select auth.uid()) or public.is_admin())
+  with check (created_by = (select auth.uid()) or public.is_admin());
 
 -- ── transcript_segments ───────────────────────────────────────────
 alter table public.transcript_segments enable row level security;
 
 create policy "via session ownership"
   on public.transcript_segments for all
+  to authenticated
   using (exists (
     select 1 from public.sessions s
     where s.id = session_id
-      and (s.created_by = auth.uid()
-           or exists (select 1 from public.users where id = auth.uid() and role = 'admin'))
+      and (s.created_by = (select auth.uid()) or public.is_admin())
+  ))
+  with check (exists (
+    select 1 from public.sessions s
+    where s.id = session_id
+      and (s.created_by = (select auth.uid()) or public.is_admin())
   ));
 
--- ── moh_forms ─────────────────────────────────────────────────────
+-- ── speaker_mappings / enrollment_slots (planned) ─────────────────
+-- same pattern as transcript_segments: access via owning session.
+
+-- ── moh_forms (planned) ───────────────────────────────────────────
 alter table public.moh_forms enable row level security;
 
 create policy "form owner or admin can read"
   on public.moh_forms for select
-  using (
-    created_by = auth.uid()
-    or exists (select 1 from public.users where id = auth.uid() and role = 'admin')
-  );
+  to authenticated
+  using (created_by = (select auth.uid()) or public.is_admin());
 
 create policy "owner can write unsigned form"
   on public.moh_forms for update
-  using (created_by = auth.uid() and not signed);
-
--- ── audit_log ─────────────────────────────────────────────────────
-alter table public.audit_log enable row level security;
-
-create policy "authenticated can insert"
-  on public.audit_log for insert
-  with check (auth.uid() is not null);
-
-create policy "admin reads audit"
-  on public.audit_log for select
-  using (exists (
-    select 1 from public.users where id = auth.uid() and role = 'admin'
-  ));
+  to authenticated
+  using (created_by = (select auth.uid()) and not signed);
 ```
 
 ---
@@ -632,12 +550,24 @@ create policy "admin reads audit"
 
 | Decision | Reason |
 |---|---|
-| `users` merges auth + staff directory | Every trauma team member is both a system user and a transcript participant. Two tables meant one person had two IDs, two rows, and every FK had to pick a side. One table, one ID, used everywhere |
-| `can_appear_in_transcript` flag | Handles the edge case of pure admin accounts (e.g. IT, management) that log in but are never in the trauma room — no need for a separate table |
-| `transcript_segments` hybrid layout | Hot query fields (`speaker_token`, `start_ms`, `is_final`) stay as real columns for btree index performance. `payload` JSONB absorbs future Soniox schema changes without migrations |
-| `transcript_segments` + `audit_log` partitioned | Both are append-only, high-volume. Annual partitions keep the query planner efficient and enable cheap archival (detach old partition) |
-| MoH form as JSONB blocks | 70+ fields in nested groups that evolve with MoH regulations. JSONB blocks absorb structural changes; GIN indexes enable field-level queries when needed |
-| `audit_log` immutable | Medical compliance. No UPDATE or DELETE ever. RLS insert-only for non-admins |
-| `speaker_mappings` unique constraint | Enforces one canonical token→user mapping per session. Re-assignments upsert the row and write an `audit_log` entry |
-| `enrollment_slots` stores `fuzzy_score` + `match_method` | Full auditability — can reconstruct exactly how each speaker was identified (auto fuzzy match vs manual override vs skipped) |
-| JSONB not BSON | Postgres uses JSONB (binary JSON) — equivalent storage efficiency and indexing to BSON. The `pg` / Supabase JS client deserializes JSONB to plain JS objects automatically |
+| `users` merges auth + staff directory | Every trauma team member is both a system user and a transcript participant. One table, one ID, used everywhere |
+| `can_appear_in_transcript` flag | Handles pure admin accounts (IT, management) that log in but are never in the trauma room — no separate table needed |
+| `transcript_segments` flat columns | The segment is a small, stable record — every field is queried, sorted, or displayed, so each is a typed, indexed column. No JSONB blob to justify |
+| Store only finalized segments | The client only persists a segment once finalized; partial tokens stay client-side as live preview. So there's no `is_final` column — it would be a constant |
+| `is_admin()` SECURITY DEFINER helper | Evaluates the admin check once per query instead of per row, and avoids RLS recursion on `users` |
+| MoH form as JSONB blocks | 70+ fields in nested groups that evolve with MoH regulations. JSONB blocks absorb structural changes |
+
+---
+
+## Deliberately omitted
+
+This is a course PoC; the following enterprise pieces from earlier drafts were
+intentionally cut to avoid over-engineering. Revisit only if the production
+build actually needs them.
+
+| Cut | Why it was dropped |
+|---|---|
+| **Table partitioning** (`transcript_segments`, annual partitions) | A single hospital's volume never approaches the scale where partitioning pays off — it only added a parent + N child tables of clutter. Plain table instead |
+| **`audit_log`** (immutable, partitioned mutation log) | Full medical-compliance audit trail is out of scope for a PoC. Add later if real deployment requires it |
+| **GIN indexes on `moh_forms` JSONB** | No field-level JSON querying in the PoC; the blobs are read whole by `id`/`session_id`. Add a GIN index when an actual query needs one |
+```

@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import type { ConnectionState, TranscriptSegment, EnrollmentSlot } from './types'
+import { useEnrollment } from './useEnrollment'
 
 // ── Correct Soniox endpoint & model ──────────────────────────────────────────
 const SONIOX_WS_URL = 'wss://stt-rt.soniox.com/transcribe-websocket'
@@ -48,16 +49,34 @@ export type UseTranscriptReturn = {
 
 let segId = 0
 
-export function useTranscript(apiKey: string): UseTranscriptReturn {
+export function useTranscript(onSegmentFinalized?: (seg: TranscriptSegment) => void): UseTranscriptReturn {
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle')
   const [errorMessage, setErrorMessage]       = useState<string | null>(null)
   const [segments, setSegments]               = useState<TranscriptSegment[]>([])
   const [partialSegment, setPartialSegment]   = useState<TranscriptSegment | null>(null)
   const [speakerMap, setSpeakerMap]           = useState<Map<string, string>>(new Map())
   const [audioLevel, setAudioLevel]           = useState(0)
-  const [enrollmentActive, setEnrollmentActive] = useState(false)
-  const [enrollmentSlots, setEnrollmentSlots]   = useState<EnrollmentSlot[]>([])
-  const [currentSlotIndex, setCurrentSlotIndex] = useState(0)
+
+  const onSegFinalizedRef = useRef(onSegmentFinalized)
+  useEffect(() => { onSegFinalizedRef.current = onSegmentFinalized }, [onSegmentFinalized])
+
+  // ── Speaker mapping ──────────────────────────────────────────────────────────
+
+  const assignSpeaker = useCallback((token: string, staffId: string) => {
+    setSpeakerMap(prev => new Map(prev).set(token, staffId))
+  }, [])
+
+  const unassignSpeaker = useCallback((token: string) => {
+    setSpeakerMap(prev => { const n = new Map(prev); n.delete(token); return n })
+  }, [])
+
+  // ── Enrollment (speaker roll-call) ───────────────────────────────────────────
+
+  const {
+    enrollmentActive, enrollmentSlots, currentSlotIndex, trackEnrollment,
+    startEnrollment, advanceEnrollmentSlot,
+    confirmEnrollmentSlot, finishEnrollment, skipEnrollment,
+  } = useEnrollment(assignSpeaker)
 
   const wsRef          = useRef<WebSocket | null>(null)
   const recorderRef    = useRef<MediaRecorder | null>(null)
@@ -66,7 +85,6 @@ export function useTranscript(apiKey: string): UseTranscriptReturn {
   const analyserRef    = useRef<AnalyserNode | null>(null)
   const animFrameRef   = useRef<number>(0)
   const pausedRef      = useRef(false)
-  const slotTokensRef  = useRef<Map<string, number>>(new Map())
   const sessionStartRef = useRef<number>(0)
 
   // Buffer final tokens per speaker; flush after FLUSH_AFTER_MS of silence
@@ -102,11 +120,14 @@ export function useTranscript(apiKey: string): UseTranscriptReturn {
     const buf = pendingRef.current.get(speakerTok)
     if (!buf || !buf.text.trim()) { pendingRef.current.delete(speakerTok); return }
     pendingRef.current.delete(speakerTok)
+    const newSeg: TranscriptSegment = {
+      id: String(++segId), token: buf.token, text: buf.text.trim(), words: [], start_ms: buf.start_ms, is_final: true,
+    }
     setSegments(prev => [
-      // remove the live buffer bubble first
       ...prev.filter(s => s.id !== `buf_${speakerTok}`),
-      { id: String(++segId), token: buf.token, text: buf.text.trim(), words: [], start_ms: buf.start_ms, is_final: true },
+      newSeg,
     ])
+    onSegFinalizedRef.current?.(newSeg)
   }, [])
 
   // ── Token → segment grouping (buffered) ───────────────────────────────────
@@ -115,21 +136,7 @@ export function useTranscript(apiKey: string): UseTranscriptReturn {
     void audioMs
     if (!tokens.length) return
 
-    // Enrollment tracking
-    if (enrollmentActive) {
-      for (const t of tokens) {
-        if (!t.speaker) continue
-        slotTokensRef.current.set(t.speaker, (slotTokensRef.current.get(t.speaker) ?? 0) + 1)
-      }
-      const text = tokens.map(t => t.text).join('')
-      if (text.trim()) {
-        setEnrollmentSlots(prev => prev.map((s, i) =>
-          i === currentSlotIndex
-            ? { ...s, detectedText: (s.detectedText + text).replace(/\s+/g, ' ').trim() }
-            : s,
-        ))
-      }
-    }
+    trackEnrollment(tokens)
 
     const nowMs         = Date.now() - sessionStartRef.current
     const finalTokens   = tokens.filter(t => t.is_final)
@@ -198,19 +205,22 @@ export function useTranscript(apiKey: string): UseTranscriptReturn {
     } else {
       setPartialSegment(null)
     }
-  }, [enrollmentActive, currentSlotIndex, flushPending])
+  }, [trackEnrollment, flushPending])
 
   // ── Connect ────────────────────────────────────────────────────────────────
 
   const connect = useCallback(async () => {
-    if (!apiKey) {
-      setErrorMessage('מפתח Soniox API חסר — הגדר VITE_SONIOX_API_KEY ב-.env')
-      setConnectionState('error')
-      return
-    }
     try {
       setConnectionState('connecting')
       setErrorMessage(null)
+
+      const tokenRes = await fetch('/api/soniox-token', { method: 'POST' })
+      if (!tokenRes.ok) {
+        setErrorMessage('לא ניתן לאמת מול שרת — נסה שוב')
+        setConnectionState('error')
+        return
+      }
+      const { api_key: apiKey } = await tokenRes.json() as { api_key: string }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
       streamRef.current = stream
@@ -278,7 +288,7 @@ export function useTranscript(apiKey: string): UseTranscriptReturn {
       setErrorMessage(msg)
       setConnectionState('error')
     }
-  }, [apiKey, handleTokens, startLevelMeter])
+  }, [handleTokens, startLevelMeter])
 
   // ── Disconnect ─────────────────────────────────────────────────────────────
 
@@ -311,51 +321,7 @@ export function useTranscript(apiKey: string): UseTranscriptReturn {
     setConnectionState('live')
   }, [])
 
-  // ── Speaker mapping ────────────────────────────────────────────────────────
-
-  const assignSpeaker = useCallback((token: string, staffId: string) => {
-    setSpeakerMap(prev => new Map(prev).set(token, staffId))
-  }, [])
-
-  const unassignSpeaker = useCallback((token: string) => {
-    setSpeakerMap(prev => { const n = new Map(prev); n.delete(token); return n })
-  }, [])
-
-  // ── Enrollment ─────────────────────────────────────────────────────────────
-
-  const startEnrollment = useCallback((expectedCount: number) => {
-    setEnrollmentSlots(Array.from({ length: expectedCount }, (_, i) => ({
-      index: i, staffId: null, detectedText: '', assignedToken: null, confirmed: false,
-    })))
-    setCurrentSlotIndex(0)
-    setEnrollmentActive(true)
-    slotTokensRef.current = new Map()
-  }, [])
-
-  const advanceEnrollmentSlot = useCallback(() => {
-    let dominantToken: string | null = null
-    let maxCount = 0
-    for (const [tok, count] of slotTokensRef.current) {
-      if (count > maxCount) { maxCount = count; dominantToken = tok }
-    }
-    setEnrollmentSlots(prev => prev.map((s, i) =>
-      i === currentSlotIndex ? { ...s, assignedToken: dominantToken } : s,
-    ))
-    slotTokensRef.current = new Map()
-    setCurrentSlotIndex(prev => prev + 1)
-  }, [currentSlotIndex])
-
-  const confirmEnrollmentSlot = useCallback((slotIndex: number, staffId: string) => {
-    setEnrollmentSlots(prev => prev.map((s, i) => {
-      if (i !== slotIndex) return s
-      if (s.assignedToken) assignSpeaker(s.assignedToken, staffId)
-      return { ...s, staffId, confirmed: true }
-    }))
-  }, [assignSpeaker])
-
-  const finishEnrollment  = useCallback(() => setEnrollmentActive(false), [])
-  const skipEnrollment    = useCallback(() => { setEnrollmentActive(false); setEnrollmentSlots([]) }, [])
-  const clearSegments     = useCallback(() => { setSegments([]); setPartialSegment(null) }, [])
+  const clearSegments = useCallback(() => { setSegments([]); setPartialSegment(null) }, [])
 
   useEffect(() => () => disconnect(), [disconnect])
 

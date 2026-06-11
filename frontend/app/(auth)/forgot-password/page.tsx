@@ -48,12 +48,7 @@ export default function ForgotPasswordPage() {
           If an account exists for <span className="font-semibold text-[#3A332D] dark:text-[#CFC6BB]">{sentTo}</span>,
           a password reset link is on its way. It may take a minute (check spam too).
         </p>
-        <Link
-          href="/login"
-          className="mt-5 text-[13px] font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]"
-        >
-          Back to sign in
-        </Link>
+        <Link href="/login" className="mt-5 text-[13px] font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]">Back to sign in </Link>
       </div>
     );
   }
@@ -68,11 +63,7 @@ export default function ForgotPasswordPage() {
       </header>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
-        {error && (
-          <p className="rounded-lg bg-[#C0492B]/10 px-3 py-2 text-[13px] font-medium text-[#C0492B] dark:text-[#E08A6E]">
-            {error}
-          </p>
-        )}
+        {error && (<p className="rounded-lg bg-[#C0492B]/10 px-3 py-2 text-[13px] font-medium text-[#C0492B] dark:text-[#E08A6E]">{error}</p>)}
         <TextField
           label="Work email"
           name="email"
@@ -89,12 +80,7 @@ export default function ForgotPasswordPage() {
 
       <p className="mt-5 text-center text-[13px] text-[#8A7E72] dark:text-[#9A8F82]">
         Remembered it?{" "}
-        <Link
-          href="/login"
-          className="font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]"
-        >
-          Sign in
-        </Link>
+        <Link href="/login" className="font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]">Sign in</Link>
       </p>
     </div>
   );

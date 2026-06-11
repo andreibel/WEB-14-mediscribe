@@ -5,13 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1a81c115-c9d8-4499-9232-ca1525645a00" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/components/ui/FuzzyText.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/login/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/register/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/register/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/not-found.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/not-found.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DATABASE.md" beforeDir="false" afterPath="$PROJECT_DIR$/DATABASE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/forgot-password/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/forgot-password/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/MoHForm/MoHForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/MoHForm/MoHForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/EnrollmentModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/transcript/EnrollmentModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/SpeakerPickerPopover.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/transcript/SpeakerPickerPopover.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/TranscriptPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/transcript/TranscriptPanel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/useTranscript.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/transcript/useTranscript.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/AuthNav.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/FuzzyText.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/Navbar.tsx" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/components/nav/AppNav.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/nav/AppNav.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/nav/navTypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/components/nav/navTypes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/FloatingLines.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/FloatingLinesBackground.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/middleware.ts" beforeDir="false" afterPath="$PROJECT_DIR$/proxy.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
@@ -58,30 +69,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "main",
-    "javascript.preferred.runtime.type.id": "node",
-    "js.debugger.nextJs.config.created.client": "true",
-    "last_opened_file_path": "/Users/andreibeloziorove/git/WEB-14-mediscribe/frontend/app/dashboard",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_interpreter_path": "node",
-    "nodejs_package_manager_path": "npm",
-    "npm.dev.executor": "Run",
-    "settings.editor.selected.configurable": "preferences.keymap",
-    "ts.external.directory.path": "/Users/andreibeloziorove/git/WEB-14-mediscribe/frontend/node_modules/typescript/lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;javascript.preferred.runtime.type.id&quot;: &quot;node&quot;,
+    &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/andreibeloziorove/git/WEB-14-mediscribe/frontend/app/dashboard&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_interpreter_path&quot;: &quot;node&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.dev.executor&quot;: &quot;Run&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/andreibeloziorove/git/WEB-14-mediscribe/frontend/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="ReactDesignerToolWindowState">
     <option name="myId2Visible">
       <map>
@@ -147,7 +158,8 @@
       <workItem from="1780499655120" duration="7308000" />
       <workItem from="1780509380023" duration="5680000" />
       <workItem from="1780597184926" duration="2541000" />
-      <workItem from="1780655838399" duration="5783000" />
+      <workItem from="1780655838399" duration="8447000" />
+      <workItem from="1781188555473" duration="12204000" />
     </task>
     <servers />
   </component>

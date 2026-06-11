@@ -1,162 +1,26 @@
-import { useState } from 'react'
 import { CornerLeftDown } from 'lucide-react'
-import { MoHFormData, EMPTY_FORM } from './formSchema'
-
-// ── Primitives ────────────────────────────────────────────────────────────────
-
-const inputCls = 'flex-1 min-w-0 border-b border-[#d8d2c8] dark:border-[#3a3835] bg-transparent text-[11px] text-[#1e1e1c] dark:text-[#e8e5e0] outline-none py-px focus:border-[#c15f3c] transition-colors disabled:opacity-60'
-
-function Field({ label, value, onChange, width = 'flex-1', disabled = false }: {
-  label: string; value: string; onChange?: (v: string) => void
-  width?: string; disabled?: boolean
-}) {
-  return (
-    <div className={`flex flex-row items-center gap-1.5 ${width}`}>
-      <label className="text-[9px] text-[#b1ada1] font-semibold uppercase tracking-wider shrink-0">
-        {label}
-      </label>
-      <input dir="rtl" value={value} disabled={disabled}
-        onChange={e => onChange?.(e.target.value)} className={inputCls} />
-    </div>
-  )
-}
-
-function FreeInput({ value, onChange, disabled }: {
-  value: string; onChange: (v: string) => void; disabled?: boolean
-}) {
-  return (
-    <input dir="rtl" value={value} disabled={disabled}
-      onChange={e => onChange(e.target.value)} className={inputCls} />
-  )
-}
-
-function Check({ label, checked, onChange, disabled = false }: {
-  label: string; checked: boolean; onChange?: (v: boolean) => void; disabled?: boolean
-}) {
-  return (
-    <label className="flex items-center gap-1.5 cursor-pointer select-none">
-      <input type="checkbox" checked={checked} disabled={disabled}
-        onChange={e => onChange?.(e.target.checked)} className="accent-[#c15f3c] w-3 h-3" />
-      <span className="text-[11px] text-[#1e1e1c] dark:text-[#e8e5e0]">{label}</span>
-    </label>
-  )
-}
-
-function RowLabel({ children, underline = false }: { children: string; underline?: boolean }) {
-  return (
-    <span className={`text-[9px] font-semibold uppercase tracking-wider shrink-0 ${
-      underline
-        ? 'text-[#1e1e1c] dark:text-[#e8e5e0] underline underline-offset-2'
-        : 'text-[#b1ada1]'
-    }`}>
-      {children}
-    </span>
-  )
-}
-
-function SectionTitle({ children }: { children: string }) {
-  return (
-    <div className="text-[10px] font-bold uppercase tracking-widest text-[#c15f3c] border-b border-[#c15f3c]/30 pb-1 mb-2">
-      {children}
-    </div>
-  )
-}
-
-const PROCEDURE_NAMES = [
-  'בדיקת מצב הכרה',
-  'בדיקת נשימה',
-  'קריאה לצוות החייאה',
-  'בדיקת דופק',
-  'עיסוי לב חיצוני',
-  'חיבור למוניטור - דפיברילטור',
-  'פתיחת דרכי אוויר',
-  'הנשמה במפוח',
-  'אינטובציה',
-  'הנשמה ב-LMA',
-  'חיבור לקפנוגרף',
-]
+import type { Dispatch, SetStateAction } from 'react'
+import type { MoHFormData } from './formSchema'
+import { useMoHForm } from './useMoHForm'
+import {
+  Field, FreeInput, Check, RowLabel, SectionTitle, PROCEDURE_NAMES,
+} from './FormPrimitives'
 
 // ── MoHForm ───────────────────────────────────────────────────────────────────
 
 interface MoHFormProps {
-  initialData?: MoHFormData
+  data: MoHFormData
+  onChange: Dispatch<SetStateAction<MoHFormData>>
   onSave?: (data: MoHFormData) => void
 }
 
-export function MoHForm({ initialData = EMPTY_FORM, onSave }: MoHFormProps) {
-  const [data, setData] = useState<MoHFormData>(initialData)
+export function MoHForm({ data, onChange: setData, onSave }: MoHFormProps) {
   const locked = data.signed
 
-  function set<K extends keyof MoHFormData>(section: K, patch: Partial<MoHFormData[K]>) {
-    setData(prev => ({ ...prev, [section]: { ...(prev[section] as object), ...patch } }))
-  }
-
-  function updateMedName(mi: number, name: string) {
-    setData(prev => {
-      const meds = [...prev.resuscitationProcess.meds]
-      meds[mi] = { ...meds[mi], name }
-      return { ...prev, resuscitationProcess: { ...prev.resuscitationProcess, meds } }
-    })
-  }
-
-  function updateMedDose(mi: number, dose: string) {
-    setData(prev => {
-      const meds = [...prev.resuscitationProcess.meds]
-      meds[mi] = { ...meds[mi], dose }
-      return { ...prev, resuscitationProcess: { ...prev.resuscitationProcess, meds } }
-    })
-  }
-
-  function updateMedTime(mi: number, ti: number, time: string) {
-    setData(prev => {
-      const meds = [...prev.resuscitationProcess.meds]
-      const times = [...meds[mi].times]
-      times[ti] = time
-      meds[mi] = { ...meds[mi], times }
-      return { ...prev, resuscitationProcess: { ...prev.resuscitationProcess, meds } }
-    })
-  }
-
-  function updateProc(pi: number, val: boolean) {
-    setData(prev => {
-      const procedures = [...prev.resuscitationProcess.procedures]
-      procedures[pi] = val
-      return { ...prev, resuscitationProcess: { ...prev.resuscitationProcess, procedures } }
-    })
-  }
-
-  function updateDefiTime(ti: number, val: string) {
-    setData(prev => {
-      const defibrillationTimes = [...prev.resuscitationProcess.defibrillationTimes]
-      defibrillationTimes[ti] = val
-      return { ...prev, resuscitationProcess: { ...prev.resuscitationProcess, defibrillationTimes } }
-    })
-  }
-
-  function updateDefiEnergy(ei: number, val: string) {
-    setData(prev => {
-      const defibrillationEnergies = [...prev.resuscitationProcess.defibrillationEnergies]
-      defibrillationEnergies[ei] = val
-      return { ...prev, resuscitationProcess: { ...prev.resuscitationProcess, defibrillationEnergies } }
-    })
-  }
-
-  function updateHeartSlot(i: number, patch: Partial<MoHFormData['heartRhythm']['slots'][0]>) {
-    setData(prev => {
-      const slots = [...prev.heartRhythm.slots]
-      slots[i] = { ...slots[i], ...patch }
-      return { ...prev, heartRhythm: { slots } }
-    })
-  }
-
-  function handleSign() {
-    const now = new Date()
-    setData(prev => ({
-      ...prev,
-      signed: true,
-      signedAt: now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }),
-    }))
-  }
+  const {
+    set, updateMedName, updateMedDose, updateMedTime, updateProc,
+    updateDefiTime, updateDefiEnergy, updateHeartSlot, handleSign,
+  } = useMoHForm(setData)
 
   const pr = data.preResuscitation
   const rp = data.resuscitationProcess

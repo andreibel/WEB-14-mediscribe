@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { Check, UserX } from 'lucide-react'
-import { STAFF_DB, staffById } from './staffDb'
+import { STAFF_DB } from './staffDb'
 import type { StaffMember } from './types'
 
 type Props = {

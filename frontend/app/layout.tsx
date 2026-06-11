@@ -26,7 +26,7 @@ export const metadata: Metadata = {
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn("font-mono", jetbrainsMono.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn("font-mono", manrope.variable, jetbrainsMono.variable)} suppressHydrationWarning>
       <head>
         <script
           // no-flash theme: runs before first paint

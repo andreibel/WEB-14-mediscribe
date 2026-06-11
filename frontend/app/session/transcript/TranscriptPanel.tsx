@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { useTranscript } from './useTranscript'
+import type { TranscriptSegment } from './types'
 import { SpeakerPickerPopover } from './SpeakerPickerPopover'
 import { EnrollmentModal } from './EnrollmentModal'
 import { staffById, unknownSpeaker } from './staffDb'
@@ -11,10 +12,11 @@ import { SessionControls } from './SessionControls'
 import { MOCK_SEGMENTS, MOCK_SPEAKER_MAP } from './mockData'
 import type { StaffMember } from './types'
 
-const API_KEY = process.env.NEXT_PUBLIC_SONIOX_API_KEY ?? ''
-
-export function TranscriptPanel() {
-  const t = useTranscript(API_KEY)
+export function TranscriptPanel({ onSegmentFinalized, onSessionEnd }: {
+  onSegmentFinalized?: (seg: TranscriptSegment) => void
+  onSessionEnd?: () => void
+}) {
+  const t = useTranscript(onSegmentFinalized)
 
   const [pickerToken, setPickerToken]   = useState<string | null>(null)
   const [pickerAnchor, setPickerAnchor] = useState<DOMRect | null>(null)
@@ -65,6 +67,11 @@ export function TranscriptPanel() {
     setShowEnrollment(true)
   }
 
+  const handleStop = () => {
+    t.disconnect()
+    onSessionEnd?.()
+  }
+
   const uniqueTokens = [...new Set(displaySegments.map(s => s.token))]
 
   return (
@@ -102,7 +109,7 @@ export function TranscriptPanel() {
         onStart={handleStartSession}
         onPause={t.pause}
         onResume={t.resume}
-        onStop={t.disconnect}
+        onStop={handleStop}
       />
 
       {pickerToken && pickerAnchor && (

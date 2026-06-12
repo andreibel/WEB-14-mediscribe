@@ -62,7 +62,9 @@ export default function ForgotPasswordPage() {
         </p>
       </header>
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
+      {/* method="post" — see login: avoid leaking fields into the URL if the
+          form is submitted before hydration. */}
+      <form onSubmit={onSubmit} method="post" className="flex flex-col gap-3.5">
         {error && (<p className="rounded-lg bg-[#C0492B]/10 px-3 py-2 text-[13px] font-medium text-[#C0492B] dark:text-[#E08A6E]">{error}</p>)}
         <TextField
           label="Work email"

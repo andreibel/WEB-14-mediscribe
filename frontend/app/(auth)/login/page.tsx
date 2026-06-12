@@ -41,17 +41,11 @@ export default function LoginPage() {
     <div className="flex flex-col">
       <header className="mb-5">
         <h2 className="text-[22px] font-extrabold tracking-[-0.02em]">Welcome back</h2>
-        <p className="mt-1 text-[13.5px] text-[#8A7E72] dark:text-[#9A8F82]">
-          Sign in to your mediscribe workspace.
-        </p>
+        <p className="mt-1 text-[13.5px] text-[#8A7E72] dark:text-[#9A8F82]">Sign in to your mediscribe workspace.</p>
       </header>
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
-        {error && (
-          <p className="rounded-lg bg-[#C0492B]/10 px-3 py-2 text-[13px] font-medium text-[#C0492B] dark:text-[#E08A6E]">
-            {error}
-          </p>
-        )}
+      <form onSubmit={onSubmit} method="post" className="flex flex-col gap-3.5">
+        {error && (<p className="rounded-lg bg-[#C0492B]/10 px-3 py-2 text-[13px] font-medium text-[#C0492B] dark:text-[#E08A6E]">{error}</p>)}
         <TextField
           label="Work email"
           name="email"
@@ -73,10 +67,7 @@ export default function LoginPage() {
 
         <div className="flex items-center justify-between">
           <Checkbox name="remember" label="Remember me" />
-          <Link
-            href="/forgot-password"
-            className="text-[12.5px] font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]"
-          >
+          <Link href="/forgot-password" className="text-[12.5px] font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]">
             Forgot password?
           </Link>
         </div>
@@ -96,12 +87,7 @@ export default function LoginPage() {
 
       <p className="mt-5 text-center text-[13px] text-[#8A7E72] dark:text-[#9A8F82]">
         New to mediscribe?{" "}
-        <Link
-          href="/register"
-          className="font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]"
-        >
-          Create an account
-        </Link>
+        <Link href="/register" className="font-semibold text-[#C15F3C] hover:text-[#AD512F] dark:hover:text-[#D97A5B]">Create an account</Link>
       </p>
     </div>
   );

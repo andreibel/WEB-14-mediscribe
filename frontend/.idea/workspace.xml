@@ -4,25 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1a81c115-c9d8-4499-9232-ca1525645a00" name="Changes" comment="">
+    <list default="true" id="1a81c115-c9d8-4499-9232-ca1525645a00" name="Changes" comment="fix: correct navigation link and enhance database documentation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DATABASE.md" beforeDir="false" afterPath="$PROJECT_DIR$/DATABASE.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(auth)/forgot-password/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/forgot-password/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/dashboard/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/session/MoHForm/MoHForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/MoHForm/MoHForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/session/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/session/transcript/EnrollmentModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/transcript/EnrollmentModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/session/transcript/SpeakerPickerPopover.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/transcript/SpeakerPickerPopover.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/login/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/register/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/register/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/form-fill/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/form-fill/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/[id]/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/session/transcript/TranscriptPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/transcript/TranscriptPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/session/transcript/useTranscript.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/transcript/useTranscript.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/AuthNav.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/FuzzyText.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/Navbar.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/nav/AppNav.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/nav/AppNav.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/FloatingLines.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/FloatingLinesBackground.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/middleware.ts" beforeDir="false" afterPath="$PROJECT_DIR$/proxy.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/FloatingLines.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/FloatingLines.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/Logo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/Logo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ui/TextField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/TextField.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/window/Window.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/window/Window.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/window/WindowContext.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/window/WindowGroup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/window/WindowGroup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
@@ -159,8 +157,27 @@
       <workItem from="1780509380023" duration="5680000" />
       <workItem from="1780597184926" duration="2541000" />
       <workItem from="1780655838399" duration="8447000" />
-      <workItem from="1781188555473" duration="12204000" />
+      <workItem from="1781188555473" duration="26948000" />
+      <workItem from="1781267500967" duration="57000" />
+      <workItem from="1781267561857" duration="373000" />
     </task>
+    <task id="LOCAL-00001" summary="refactor: streamline MoHForm and introduce reusable form primitives">
+      <option name="closed" value="true" />
+      <created>1781202045648</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1781202045648</updated>
+    </task>
+    <task id="LOCAL-00002" summary="fix: correct navigation link and enhance database documentation">
+      <option name="closed" value="true" />
+      <created>1781202061717</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1781202061717</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -170,6 +187,9 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
+    <MESSAGE value="refactor: streamline MoHForm and introduce reusable form primitives" />
+    <MESSAGE value="fix: correct navigation link and enhance database documentation" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: correct navigation link and enhance database documentation" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

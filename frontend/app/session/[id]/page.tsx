@@ -1,30 +1,82 @@
 'use client'
 
-import { useState, useRef, useCallback, useMemo, use } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect, use } from 'react'
 import { Window, WindowGroup } from '@/components/window'
 import { TranscriptPanel } from '../transcript/TranscriptPanel'
 import { MoHForm } from '../MoHForm'
 import { EMPTY_FORM, type MoHFormData } from '../MoHForm/formSchema'
+import { ProtocolPanel, useProtocolEngine } from '../protocol'
 import type { TranscriptSegment } from '../transcript/types'
 import { createClient } from '@/lib/supabase/client'
 
-const BATCH_SIZE = 10
+// DD/MM/YYYY + HH:MM for the current moment — injected into the form at session
+// start so the AI never has to (and never overwrites) the start date/time.
+function nowDateTime() {
+  const d = new Date()
+  const p = (n: number) => String(n).padStart(2, '0')
+  return {
+    date: `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`,
+    time: `${p(d.getHours())}:${p(d.getMinutes())}`,
+  }
+}
+
+const BATCH_SIZE = 3
 
 export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: sessionId } = use(params)
   const supabase = useMemo(() => createClient(), [])
+  const protocol = useProtocolEngine()
+  const { pushSegment: pushProtocolSegment } = protocol
 
   const [formData, setFormData]     = useState<MoHFormData>(EMPTY_FORM)
   const [isUpdating, setIsUpdating]  = useState(false)
   const [aiEnabled, setAiEnabled]    = useState(true)
+  // Gate saves until the initial load resolves, so we never overwrite a stored
+  // form with EMPTY_FORM before it has been fetched.
+  const [loaded, setLoaded]          = useState(false)
 
   // Read the toggle from inside the (otherwise stable) segment handler
   // without re-creating it on every flip.
   const aiEnabledRef = useRef(aiEnabled)
   aiEnabledRef.current = aiEnabled
 
-  // All finalized segments accumulated for the session — sent as full context each call
-  const allSegmentsRef  = useRef<TranscriptSegment[]>([])
+  // Load any previously saved form for this session on mount.
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('moh_forms')
+      .select('data')
+      .eq('session_id', sessionId)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) console.error('form load failed', error)
+        else if (data?.data) setFormData(data.data as MoHFormData)
+        setLoaded(true)
+      })
+    return () => { cancelled = true }
+  }, [sessionId, supabase])
+
+  // Persist the form (debounced) whenever it changes — covers manual edits and
+  // AI auto-fill alike, since both flow through setFormData. One row per session.
+  useEffect(() => {
+    if (!loaded) return
+    const handle = setTimeout(() => {
+      supabase
+        .from('moh_forms')
+        .upsert(
+          { session_id: sessionId, data: formData, signed: formData.signed },
+          { onConflict: 'session_id' },
+        )
+        .then(({ error }) => { if (error) console.error('form save failed', error) })
+    }, 800)
+    return () => clearTimeout(handle)
+  }, [formData, loaded, sessionId, supabase])
+
+  // All finalized segments accumulated for the session — sent as full context each
+  // call, each tagged with the wall-clock time it landed so the AI can time-stamp
+  // medications/events (e.g. adrenaline heard at 15:41 → that med's time = 15:41).
+  const allSegmentsRef  = useRef<Array<TranscriptSegment & { clock: string }>>([])
   // Count of segments since the last Haiku call
   const pendingCountRef = useRef(0)
 
@@ -40,8 +92,13 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       })
       .then(({ error }) => { if (error) console.error('segment save failed', error) })
 
-    // 2. Accumulate for AI context.
-    allSegmentsRef.current.push(seg)
+    // 2. Feed the protocol engine (real-time, never persisted) — drives the
+    //    left panel's detection, timers and notifications.
+    pushProtocolSegment(seg.text)
+
+    // 3. Accumulate for AI context, stamped with the wall-clock time it landed.
+    const { time: clock } = nowDateTime()
+    allSegmentsRef.current.push({ ...seg, clock })
     pendingCountRef.current += 1
 
     // 3. AI auto-fill — only when the toggle is on.
@@ -67,7 +124,21 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     } finally {
       setIsUpdating(false)
     }
-  }, [formData, sessionId, supabase])
+  }, [formData, sessionId, supabase, pushProtocolSegment])
+
+  // Inject the start date/time once, when recording begins — so the AI never
+  // fills (or later overwrites) these. Only sets fields still empty.
+  const handleSessionStart = useCallback(() => {
+    const { date, time } = nowDateTime()
+    setFormData(f => ({
+      ...f,
+      preResuscitation: {
+        ...f.preResuscitation,
+        date: f.preResuscitation.date || date,
+        timeStarted: f.preResuscitation.timeStarted || time,
+      },
+    }))
+  }, [])
 
   // Mark the session ended when the user stops recording.
   const handleSessionEnd = useCallback(() => {
@@ -83,26 +154,16 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       <div className="flex-1 flex flex-col gap-2 p-3 pt-[calc(3.5rem+0.75rem)] min-h-0">
 
         <WindowGroup className="flex-1 min-h-0">
-          <Window title="Overview" defaultMinimized={true}>
-            <div className="p-4 space-y-3">
-              <h2 className="text-sm font-semibold text-gray-700">Overview</h2>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                This panel shows a high-level summary of the current session.
-                You can minimize it to reclaim space, or maximize it to focus.
-              </p>
-              <div className="grid grid-cols-2 gap-2 pt-1">
-                {['Active', 'Pending', 'Done', 'Total'].map((label, i) => (
-                  <div key={label} className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-                    <div className="text-lg font-bold text-gray-800">{(i + 1) * 12}</div>
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <Window title="פרוטוקול">
+            <ProtocolPanel engine={protocol} />
           </Window>
 
           <Window title="Transcript">
-            <TranscriptPanel onSegmentFinalized={handleSegment} onSessionEnd={handleSessionEnd} />
+            <TranscriptPanel
+              onSegmentFinalized={handleSegment}
+              onSessionStart={handleSessionStart}
+              onSessionEnd={handleSessionEnd}
+            />
           </Window>
 
           <Window title={isUpdating && aiEnabled ? 'נספח ז ●' : 'נספח ז'}>

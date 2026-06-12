@@ -27,9 +27,9 @@ It captures live audio via Soniox WebSocket STT, assigns speakers to staff membe
 | `users` | ✅ created |
 | `sessions` | ✅ created |
 | `transcript_segments` | ✅ created |
+| `moh_forms` | ✅ created |
 | `speaker_mappings` | 📝 planned |
 | `enrollment_slots` | 📝 planned |
-| `moh_forms` | 📝 planned |
 
 Helper function `is_admin()` and the `touch_updated_at()` trigger are live.
 
@@ -185,124 +185,33 @@ Audit trail of the roll-call speaker identification process.
 
 ---
 
-### `moh_forms` _(planned)_
+### `moh_forms`
 Ministry of Health Appendix Z (נספח ז) — resuscitation documentation form.
-~70 fields grouped into JSONB blocks. Signed forms are immutable (enforced via RLS).
+One row per session. The whole form is stored as a **single JSONB blob** (`data`)
+that mirrors `formSchema.ts: MoHFormData` 1-to-1 — no per-field columns, no
+snake_case↔camelCase mapping layer.
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | `uuid` PK | |
-| `session_id` | `uuid` | FK → `sessions(id)` · nullable (form can exist without session) |
-| `created_by` | `uuid` | FK → `users(id)` |
-| `patient` | `jsonb` | Patient demographics (see below) |
-| `pre_resuscitation` | `jsonb` | Times, witnesses, background, consciousness |
-| `heart_rhythm` | `jsonb` | Array of 5 rhythm slots |
-| `medications` | `jsonb` | Array of 11 medication rows × 9 time columns |
-| `procedures` | `boolean[]` | 11 procedure checkboxes |
-| `defibrillation` | `jsonb` | Times, energies, IV access |
-| `summary` | `jsonb` | End-of-resuscitation vitals and transfer info |
-| `form_staff` | `jsonb` | Team member names and approver |
-| `signed` | `boolean` | Once true → row is read-only |
-| `signed_by` | `text` | Name of signer |
-| `signed_at` | `timestamptz` | |
+| `session_id` | `uuid` | FK → `sessions(id)` · **unique** — one form per session |
+| `data` | `jsonb` | The entire `MoHFormData` object (patient, preResuscitation, heartRhythm, resuscitationProcess, summary, staff, sign-off) |
+| `signed` | `boolean` | Promoted out of the blob for cheap dashboard filtering |
 | `created_at` | `timestamptz` | |
-| `updated_at` | `timestamptz` | |
+| `updated_at` | `timestamptz` | Auto-updated via trigger |
 
-**`patient` shape**
-```jsonc
-{
-  "name": "",
-  "id_number": "",
-  "address": "",
-  "phone": "",
-  "emergency_contact": "",
-  "emergency_phone": "",
-  "hmo": "",
-  "age": ""
-}
-```
+**Why one blob instead of typed columns?**
+The form has ~70 fields in nested, regulation-driven groups and is **never queried
+field-by-field** — the client reads/writes it whole by `session_id`. Storing it as
+`data jsonb` means `setFormData(form)` ↔ `data` is a one-line round-trip with zero
+mapping code. The TS interface stays the single source of truth; the DB just holds
+the bytes. `signed` is the one field lifted to a column so the dashboard can filter
+without parsing JSON. Promote more fields to columns only when an actual query needs
+to filter or sort on them.
 
-**`pre_resuscitation` shape**
-```jsonc
-{
-  "date": "DD/MM/YYYY",
-  "time_found": "HH:MM",
-  "time_started": "HH:MM",
-  "time_team_arrived": "HH:MM",
-  "location": "",
-  "witness": {
-    "team_medical": false,
-    "team_nursing": false,
-    "family": false,
-    "other": false,
-    "other_text": ""
-  },
-  "reason": {
-    "cardiac_arrest": false,
-    "respiratory_arrest": false
-  },
-  "consciousness": "",       // "מעורפל" | "ללא הכרה"
-  "responsive": "",          // "כן" | "לא"
-  "respiratory_status": "",  // "נושם" | "לא נושם" | "מונשם"
-  "background": {
-    "cardiac": false,
-    "respiratory": false,
-    "trauma": false,
-    "electrolyte": false,
-    "other": ""
-  }
-}
-```
-
-**`heart_rhythm` shape**
-```jsonc
-[
-  { "time": "HH:MM", "assessment": "" },
-  // × 5 slots
-]
-```
-
-**`medications` shape**
-```jsonc
-[
-  { "name": "ADRENALINE", "dose": "", "times": ["", "", "", "", "", "", "", "", ""] },
-  { "name": "ATROPINE",   "dose": "", "times": ["", "", "", "", "", "", "", "", ""] },
-  // … 11 rows, last row has editable name ("אחר")
-]
-```
-
-**`defibrillation` shape**
-```jsonc
-{
-  "times":     ["HH:MM", …],   // 9 slots
-  "energies":  ["200J", …],    // 9 slots
-  "iv_access": false
-}
-```
-
-**`summary` shape**
-```jsonc
-{
-  "end_time": "HH:MM",
-  "death_declared": "",          // "כן" | "לא"
-  "spontaneous_breathing": "",   // "כן" | "לא" | "מונשם"
-  "heart_rate_end": "",
-  "saturation": "",
-  "etco2_end": "",
-  "bp_end": "",
-  "consciousness_end": "",       // "מעורפל" | "ללא הכרה" | "מורדם"
-  "transferred_to": "",
-  "transfer_method": "",
-  "transfer_time": "HH:MM",
-  "not_transferred": false
-}
-```
-
-**Indexes**
-```sql
-create index on moh_forms (session_id);
-create index on moh_forms (created_by);
-```
+> **Note:** signed-form immutability is **not** enforced in the PoC (it was in the
+> earlier draft via an RLS `not signed` check). Re-add when a real deployment needs
+> a locked, signed record.
 
 ---
 
@@ -436,29 +345,18 @@ create table public.enrollment_slots (
 );
 
 -- ─────────────────────────────────────────────────────────────────
--- MOH FORMS  (planned)
+-- MOH FORMS  (single JSONB blob = formSchema.ts MoHFormData)
 -- ─────────────────────────────────────────────────────────────────
 create table public.moh_forms (
-  id                uuid      primary key default gen_random_uuid(),
-  session_id        uuid      references public.sessions(id),
-  created_by        uuid      not null references public.users(id),
-  patient           jsonb     not null default '{}'::jsonb,
-  pre_resuscitation jsonb     not null default '{}'::jsonb,
-  heart_rhythm      jsonb     not null default '[]'::jsonb,
-  medications       jsonb     not null default '[]'::jsonb,
-  procedures        boolean[] not null default array_fill(false, array[11]),
-  defibrillation    jsonb     not null default '{}'::jsonb,
-  summary           jsonb     not null default '{}'::jsonb,
-  form_staff        jsonb     not null default '{}'::jsonb,
-  signed            boolean   not null default false,
-  signed_by         text,
-  signed_at         timestamptz,
-  created_at        timestamptz not null default now(),
-  updated_at        timestamptz not null default now()
+  id          uuid        primary key default gen_random_uuid(),
+  session_id  uuid        not null unique references public.sessions(id) on delete cascade,
+  data        jsonb       not null default '{}'::jsonb,
+  signed      boolean     not null default false,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
 );
-
-create index on public.moh_forms (session_id);
-create index on public.moh_forms (created_by);
+-- session_id is UNIQUE → upsert target. No extra index needed (the unique
+-- constraint already indexes it); no GIN index (the blob is read whole by id).
 
 -- ─────────────────────────────────────────────────────────────────
 -- TRIGGERS — auto updated_at
@@ -530,18 +428,23 @@ create policy "via session ownership"
 -- ── speaker_mappings / enrollment_slots (planned) ─────────────────
 -- same pattern as transcript_segments: access via owning session.
 
--- ── moh_forms (planned) ───────────────────────────────────────────
+-- ── moh_forms ─────────────────────────────────────────────────────
+-- Access routed through the owning session, same pattern as transcript_segments.
 alter table public.moh_forms enable row level security;
 
-create policy "form owner or admin can read"
-  on public.moh_forms for select
+create policy "moh via session ownership"
+  on public.moh_forms for all
   to authenticated
-  using (created_by = (select auth.uid()) or public.is_admin());
-
-create policy "owner can write unsigned form"
-  on public.moh_forms for update
-  to authenticated
-  using (created_by = (select auth.uid()) and not signed);
+  using (exists (
+    select 1 from public.sessions s
+    where s.id = session_id
+      and (s.created_by = (select auth.uid()) or public.is_admin())
+  ))
+  with check (exists (
+    select 1 from public.sessions s
+    where s.id = session_id
+      and (s.created_by = (select auth.uid()) or public.is_admin())
+  ));
 ```
 
 ---
@@ -555,7 +458,7 @@ create policy "owner can write unsigned form"
 | `transcript_segments` flat columns | The segment is a small, stable record — every field is queried, sorted, or displayed, so each is a typed, indexed column. No JSONB blob to justify |
 | Store only finalized segments | The client only persists a segment once finalized; partial tokens stay client-side as live preview. So there's no `is_final` column — it would be a constant |
 | `is_admin()` SECURITY DEFINER helper | Evaluates the admin check once per query instead of per row, and avoids RLS recursion on `users` |
-| MoH form as JSONB blocks | 70+ fields in nested groups that evolve with MoH regulations. JSONB blocks absorb structural changes |
+| MoH form as one JSONB blob | ~70 nested fields, never queried field-by-field — stored whole as `data jsonb` mirroring `MoHFormData`. Zero mapping code; `signed` lifted to a column for dashboard filtering |
 
 ---
 

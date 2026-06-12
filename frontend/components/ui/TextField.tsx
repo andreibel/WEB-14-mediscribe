@@ -67,11 +67,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
           </button>
         )}
       </div>
-      {error ? (
-        <p className="text-[12px] font-medium text-[#C0492B] dark:text-[#E08A6E]">{error}</p>
-      ) : hint ? (
-        <p className="text-[12px] text-[#8A7E72] dark:text-[#9A8F82]">{hint}</p>
-      ) : null}
+      {error ? (<p className="text-[12px] font-medium text-[#C0492B] dark:text-[#E08A6E]">{error}</p>) : hint ? (<p className="text-[12px] text-[#8A7E72] dark:text-[#9A8F82]">{hint}</p>) : null}
     </div>
   );
 });

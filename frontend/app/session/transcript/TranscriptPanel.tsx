@@ -12,8 +12,9 @@ import { SessionControls } from './SessionControls'
 import { MOCK_SEGMENTS, MOCK_SPEAKER_MAP } from './mockData'
 import type { StaffMember } from './types'
 
-export function TranscriptPanel({ onSegmentFinalized, onSessionEnd }: {
+export function TranscriptPanel({ onSegmentFinalized, onSessionStart, onSessionEnd }: {
   onSegmentFinalized?: (seg: TranscriptSegment) => void
+  onSessionStart?: () => void
   onSessionEnd?: () => void
 }) {
   const t = useTranscript(onSegmentFinalized)
@@ -47,6 +48,7 @@ export function TranscriptPanel({ onSegmentFinalized, onSessionEnd }: {
   }, [])
 
   const handleStartSession = () => {
+    onSessionStart?.()
     t.startEnrollment(5)
     setShowEnrollment(true)
     t.connect()

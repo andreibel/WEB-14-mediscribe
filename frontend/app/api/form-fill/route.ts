@@ -22,6 +22,7 @@ const SYSTEM_PROMPT = `אתה עוזר רפואי שממלא טופס רישום
 - שדות enum: השתמש אך ורק בערכים המותרים בסכמה
 - שדות זמן: פורמט HH:MM
 - שדות תאריך: פורמט DD/MM/YYYY
+- כל שורת תמלול מתחילה בזמן בפועל שבו נאמרה, בפורמט [HH:MM]. כאשר מוזכר מתן תרופה, שוק חשמלי, או אירוע מתוזמן — קבע את זמנו בטופס לפי הזמן שבתחילת אותה שורה (למשל times של תרופות, defibrillationTimes, slots של קצב לב, timeFound וכו׳)
 - החזר אך ורק את אובייקט ה-JSON המלא, ללא הסברים וללא markdown`
 
 export async function POST(req: NextRequest) {
@@ -30,13 +31,15 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { segments, currentForm }: {
-    segments: TranscriptSegment[]
+    // `clock` is the wall-clock time (HH:MM) the segment was finalized — the LLM
+    // uses it to time-stamp medications/events in the form.
+    segments: Array<TranscriptSegment & { clock?: string }>
     currentForm: MoHFormData
   } = await req.json()
 
   const transcript = segments
     .filter(s => s.is_final && s.text.trim())
-    .map(s => `[${s.token}] ${s.text.trim()}`)
+    .map(s => `[${s.clock ?? '--:--'}] [${s.token}] ${s.text.trim()}`)
     .join('\n')
 
   const message = await anthropic.messages.create({

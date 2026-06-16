@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef } from 'react'
 import { Activity, Syringe, Bell, AlertTriangle } from 'lucide-react'
 import type { ProtocolNotification, NotifKind } from '../types'
+import { formatTime } from '@/lib/datetime'
 
 const STYLE: Record<NotifKind, { dot: string; ring: string; icon: typeof Activity }> = {
   protocol: { dot: 'bg-[#C15F3C]', ring: 'border-[#C15F3C]', icon: Activity },
@@ -9,19 +10,13 @@ const STYLE: Record<NotifKind, { dot: string; ring: string; icon: typeof Activit
   overdue: { dot: 'bg-[#C0392B]', ring: 'border-[#C0392B]', icon: AlertTriangle },
 }
 
-function hhmm(ts: number): string {
-  const d = new Date(ts)
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
+const hhmm = (ts: number) => formatTime(new Date(ts))
 
 // Strip the "נרשם: " prefix the engine adds, for a cleaner timeline label.
 function clean(title: string): string {
   return title.replace(/^נרשם:\s*/, '')
 }
 
-// A fixed timeline strip (not a hovering toast): every protocol event plotted
-// left→right by time, each with its clock, an icon, and a description.
-// Forced LTR so time reads left→right even inside the RTL panel.
 export function Timeline({ items }: { items: ProtocolNotification[] }) {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -44,16 +39,12 @@ export function Timeline({ items }: { items: ProtocolNotification[] }) {
             return (
               <Fragment key={n.id}>
                 {i > 0 && <span className="mt-7 h-px w-6 shrink-0 self-start bg-[#D8D2C8] dark:bg-[#3a3835]" />}
-                <div className="flex w-[112px] shrink-0 flex-col items-center gap-1 text-center">
+                <div className="flex w-28 shrink-0 flex-col items-center gap-1 text-center">
                   <span className="text-[12px] font-extrabold tabular-nums text-[#3A332D] dark:text-[#E8E2D9]">{hhmm(n.ts)}</span>
                   <span className={['flex h-7 w-7 items-center justify-center rounded-full border-2 bg-white shadow-sm dark:bg-[#221E1B]', s.ring].join(' ')}>
-                    <span className={['flex h-full w-full items-center justify-center rounded-full text-white', s.dot].join(' ')}>
-                      <Icon size={13} strokeWidth={2.4} />
-                    </span>
+                    <span className={['flex h-full w-full items-center justify-center rounded-full text-white', s.dot].join(' ')}><Icon size={13} strokeWidth={2.4} /></span>
                   </span>
-                  <span className="line-clamp-2 text-[10.5px] font-semibold leading-tight text-[#4a4640] dark:text-[#C0BDB8]" title={n.title}>
-                    {clean(n.title)}
-                  </span>
+                  <span className="line-clamp-2 text-[10.5px] font-semibold leading-tight text-[#4a4640] dark:text-[#C0BDB8]" title={n.title}>{clean(n.title)}</span>
                   {n.body && <span className="truncate text-[9px] text-[#A89D90] dark:text-[#7A7167]">{n.body}</span>}
                 </div>
               </Fragment>

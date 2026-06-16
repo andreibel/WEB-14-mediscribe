@@ -1,12 +1,11 @@
 "use client";
 
-import {useEffect} from "react";
 import Link from "next/link";
 import {usePathname, useRouter} from "next/navigation";
 import {Settings, User} from "lucide-react";
 import {AnimatePresence, motion} from "motion/react";
-import {Logo} from "@/components/Logo";
-import {ThemeToggle} from "@/components/nav/ThemeToggle";
+import {Logo} from "@/components/app/Logo";
+import {ThemeToggle} from "@/components/app/nav/ThemeToggle";
 import {createClient} from "@/lib/supabase/client";
 import type {NavAction, NavCircle, NavLink} from "./navTypes";
 
@@ -74,7 +73,6 @@ export function AppNav() {
 
   const isMain = PUBLIC_PATHS.some(p => pathname?.startsWith(p));
   const isApp = APP_PATHS.some(p => pathname?.startsWith(p));
-  const isIndex = !isMain && !isApp;
 
   async function handleLogout() {
     const supabase = createClient();
@@ -88,14 +86,6 @@ export function AppNav() {
     ? APP_RIGHT_LINKS.map(a => (a.id === "logout" ? {...a, onClick: handleLogout} : a))
     : PUBLIC_RIGHT_LINKS;
   const circles = isApp ? APP_CIRCLES : PUBLIC_CIRCLES;
-
-  // Public pages are always dark — reset whenever the user lands on one.
-  useEffect(() => {
-    if (isIndex) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("ms-theme", "dark");
-    }
-  }, [isIndex]);
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center gap-3 px-4 sm:px-8">
@@ -188,8 +178,8 @@ export function AppNav() {
         )
       )}
 
-      {/* Theme toggle — hidden on public pages (always dark there) */}
-      {!isIndex && <ThemeToggle/>}
+      {/* Theme toggle — always available, on every page */}
+      <ThemeToggle/>
 
     </header>
   );

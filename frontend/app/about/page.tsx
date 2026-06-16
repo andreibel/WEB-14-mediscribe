@@ -1,4 +1,4 @@
-import { Logo } from "@/components/Logo";
+import { Logo } from "@/components/app/Logo";
 
 export default function AboutPage() {
   return (

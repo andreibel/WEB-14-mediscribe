@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, JetBrains_Mono } from "next/font/google";
-import { AppNav } from "@/components/nav/AppNav";
+import { AppNav } from "@/components/app/nav/AppNav";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 

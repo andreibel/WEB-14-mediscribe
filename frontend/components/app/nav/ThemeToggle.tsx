@@ -9,19 +9,11 @@ const iconBtn =
   "dark:text-[#9A8F82] dark:ring-white/10 dark:hover:bg-white/8";
 
 export function ThemeToggle() {
-  const [dark, setDark] = useState(() => {
-    if (typeof window === "undefined") return true;
-    const stored = localStorage.getItem("ms-theme");
-    return stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
-
-  // Sync with external changes (e.g. public pages force dark mode)
+  // The no-flash script in the root layout sets the initial `dark` class before
+  // paint; we read that on mount so this toggle is the single source of truth.
+  const [dark, setDark] = useState(true);
   useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setDark(document.documentElement.classList.contains("dark"));
-    });
-    observer.observe(document.documentElement, { attributeFilter: ["class"] });
-    return () => observer.disconnect();
+    setDark(document.documentElement.classList.contains("dark"));
   }, []);
 
   function toggle() {

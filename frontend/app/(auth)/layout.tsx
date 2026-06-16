@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AnimatedLogo } from "@/components/AnimatedLogo";
+import { AnimatedLogo } from "@/components/app/AnimatedLogo";
 
 /**
  * Auth shell: full terracotta background, top navbar (static logo + Login/

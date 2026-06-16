@@ -2,23 +2,13 @@
 
 import { useState, useRef, useCallback, useMemo, useEffect, use } from 'react'
 import { Window, WindowGroup } from '@/components/window'
-import { TranscriptPanel } from '../transcript/TranscriptPanel'
-import { MoHForm } from '../MoHForm'
-import { EMPTY_FORM, type MoHFormData } from '../MoHForm/formSchema'
-import { ProtocolPanel, useProtocolEngine } from '../protocol'
-import type { TranscriptSegment } from '../transcript/types'
+import { TranscriptPanel } from '../_transcript/TranscriptPanel'
+import { MoHForm } from '../_form'
+import { EMPTY_FORM, type MoHFormData } from '../_form/formSchema'
+import { ProtocolPanel, useProtocolEngine } from '../_protocol'
+import type { TranscriptSegment } from '../_transcript/types'
 import { createClient } from '@/lib/supabase/client'
-
-// DD/MM/YYYY + HH:MM for the current moment — injected into the form at session
-// start so the AI never has to (and never overwrites) the start date/time.
-function nowDateTime() {
-  const d = new Date()
-  const p = (n: number) => String(n).padStart(2, '0')
-  return {
-    date: `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`,
-    time: `${p(d.getHours())}:${p(d.getMinutes())}`,
-  }
-}
+import { nowDateTime } from '@/lib/datetime'
 
 const BATCH_SIZE = 3
 

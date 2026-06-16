@@ -4,25 +4,52 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1a81c115-c9d8-4499-9232-ca1525645a00" name="Changes" comment="fix: correct navigation link and enhance database documentation">
+    <list default="true" id="1a81c115-c9d8-4499-9232-ca1525645a00" name="Changes" comment="feat: implement protocol panel with settings and timeline integration">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DATABASE.md" beforeDir="false" afterPath="$PROJECT_DIR$/DATABASE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/forgot-password/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/forgot-password/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/login/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/register/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/register/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/about/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/about/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/api/form-fill/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/form-fill/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/guides/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/guides/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/MoHForm/FormPrimitives.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_form/FormPrimitives.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/MoHForm/MoHForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_form/MoHForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/MoHForm/formSchema.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_form/formSchema.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/MoHForm/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_form/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/MoHForm/useMoHForm.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_form/useMoHForm.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/session/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/[id]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/session/transcript/TranscriptPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/transcript/TranscriptPanel.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/FloatingLines.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/FloatingLines.jsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/Logo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/Logo.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/TextField.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/TextField.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/window/Window.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/window/Window.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/window/WindowContext.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/window/WindowGroup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/window/WindowGroup.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/ProtocolFlow.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/ProtocolFlow.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/ProtocolPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/ProtocolPanel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/ProtocolPicker.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/ProtocolPicker.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/blocks/CountdownRing.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/blocks/CountdownRing.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/blocks/Timeline.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/blocks/Timeline.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/blocks/flowNodes.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/blocks/flowNodes.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/normalize.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/normalize.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/protocols/acls.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/protocols/acls.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/protocols/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/protocols/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/settings.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/settings.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/protocol/useProtocolEngine.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_protocol/useProtocolEngine.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/Bubble.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/Bubble.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/EnrollmentModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/EnrollmentModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/MedicalBackground.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/MedicalBackground.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/SessionControls.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/SessionControls.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/SpeakerPickerPopover.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/SpeakerPickerPopover.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/TranscriptAtoms.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/TranscriptAtoms.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/TranscriptHeader.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/TranscriptHeader.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/TranscriptPanel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/TranscriptPanel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/mockData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/mockData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/staffDb.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/staffDb.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/useEnrollment.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/useEnrollment.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/session/transcript/useTranscript.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/session/_transcript/useTranscript.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/AnimatedLogo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/app/AnimatedLogo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/Logo.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/app/Logo.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/nav/AppNav.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/app/nav/AppNav.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/nav/ThemeToggle.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/app/nav/ThemeToggle.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/nav/navTypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/components/app/nav/navTypes.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,6 +85,9 @@
     &quot;accountId&quot;: &quot;0995409c-6dfb-46f4-a021-f6c283c8bb51&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4,
   &quot;fromUser&quot;: false
@@ -159,7 +189,8 @@
       <workItem from="1780655838399" duration="8447000" />
       <workItem from="1781188555473" duration="26948000" />
       <workItem from="1781267500967" duration="57000" />
-      <workItem from="1781267561857" duration="373000" />
+      <workItem from="1781267561857" duration="7618000" />
+      <workItem from="1781515352718" duration="714000" />
     </task>
     <task id="LOCAL-00001" summary="refactor: streamline MoHForm and introduce reusable form primitives">
       <option name="closed" value="true" />
@@ -177,7 +208,15 @@
       <option name="project" value="LOCAL" />
       <updated>1781202061717</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="feat: implement protocol panel with settings and timeline integration">
+      <option name="closed" value="true" />
+      <created>1781267964449</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1781267964449</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -189,7 +228,8 @@
     </ignored-roots>
     <MESSAGE value="refactor: streamline MoHForm and introduce reusable form primitives" />
     <MESSAGE value="fix: correct navigation link and enhance database documentation" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: correct navigation link and enhance database documentation" />
+    <MESSAGE value="feat: implement protocol panel with settings and timeline integration" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: implement protocol panel with settings and timeline integration" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

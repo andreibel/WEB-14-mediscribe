@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
-import type { MoHFormData } from '@/app/session/MoHForm/formSchema'
-import type { TranscriptSegment } from '@/app/session/transcript/types'
+import type { MoHFormData } from '@/app/session/_form/formSchema'
+import type { TranscriptSegment } from '@/app/session/_transcript/types'
 
 const anthropic = new Anthropic()
 
-const SYSTEM_PROMPT = `אתה עוזר רפואי שממלא טופס רישום וניטור החייאה (נספח ז, משרד הבריאות ישראל).
+const SYSTEM_PROMPT = `אתה עוזר רפואי שממלא טופס רישום וניטור החייאה .
 
 קולטים:
 1. תמלול של שיחת הצוות הרפואי (עברית ואנגלית מעורבבות)

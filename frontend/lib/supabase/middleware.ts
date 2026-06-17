@@ -4,9 +4,9 @@ import {NextResponse, type NextRequest} from "next/server";
 // Pages that require a logged-in user.
 const PROTECTED_PREFIXES = ["/dashboard", "/session", "/settings", "/profile", "/notifications"];
 
-// Auth pages a logged-in user shouldn't see. NOTE: /reset-password and /auth/*
-// are deliberately excluded — reset runs on a temporary recovery session, and
-// /auth/callback must always be reachable to complete email links.
+// Auth pages a logged-in user shouldn't see. NOTE: /reset-password and
+// /api/auth/* are deliberately excluded — reset runs on a temporary recovery
+// session, and /api/auth/callback must always be reachable to complete email links.
 const AUTH_PREFIXES = ["/login", "/register", "/forgot-password"];
 
 /**

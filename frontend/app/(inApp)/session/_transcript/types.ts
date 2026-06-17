@@ -21,18 +21,10 @@ export type SpeakerResolution = {
 
 export type TranscriptSegment = {
   id: string
+  seq?: number          // DB row id (transcript_segments.seq), set once persisted
   token: string         // Soniox speaker token e.g. "S1"
   text: string
   words: never[]        // reserved for future per-token data
   start_ms: number
   is_final: boolean
-}
-
-/** One slot in the enrollment roll-call */
-export type EnrollmentSlot = {
-  index: number
-  staffId: string | null         // who we think this is
-  detectedText: string           // what Soniox heard
-  assignedToken: string | null   // Soniox token captured during this slot
-  confirmed: boolean
 }

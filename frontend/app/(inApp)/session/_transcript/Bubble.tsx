@@ -12,7 +12,7 @@ export function Bubble({
 }: {
   segment: TranscriptSegment
   speaker: StaffMember
-  onAvatarClick: (token: string, rect: DOMRect) => void
+  onAvatarClick: (segment: TranscriptSegment, rect: DOMRect) => void
 }) {
   const avatarRef = useRef<HTMLButtonElement>(null)
 
@@ -22,7 +22,7 @@ export function Bubble({
         ref={avatarRef}
         onClick={() => {
           const rect = avatarRef.current?.getBoundingClientRect()
-          if (rect) onAvatarClick(segment.token, rect)
+          if (rect) onAvatarClick(segment, rect)
         }}
         className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 shadow-sm hover:ring-2 hover:ring-offset-1 transition-all"
         style={{ background: speaker.color }}

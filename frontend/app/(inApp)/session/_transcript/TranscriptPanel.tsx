@@ -1,8 +1,8 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { useTranscript } from './useTranscript'
-import type { TranscriptSegment } from './types'
+import { useStaff } from './useStaff'
+import type { TranscriptSegment, StaffMember } from './types'
 import { SpeakerPickerPopover } from './SpeakerPickerPopover'
-import { EnrollmentModal } from './EnrollmentModal'
 import { staffById, unknownSpeaker } from './staffDb'
 import { MedicalBackground } from './MedicalBackground'
 import { TranscriptHeader } from './TranscriptHeader'
@@ -10,18 +10,18 @@ import { ErrorBanner } from './TranscriptAtoms'
 import { Bubble } from './Bubble'
 import { SessionControls } from './SessionControls'
 import { MOCK_SEGMENTS, MOCK_SPEAKER_MAP } from './mockData'
-import type { StaffMember } from './types'
 
-export function TranscriptPanel({ onSegmentFinalized, onSessionStart, onSessionEnd }: {
+export function TranscriptPanel({ sessionId, onSegmentFinalized, onSessionStart, onSessionEnd }: {
+  sessionId: string
   onSegmentFinalized?: (seg: TranscriptSegment) => void
   onSessionStart?: () => void
   onSessionEnd?: () => void
 }) {
-  const t = useTranscript(onSegmentFinalized)
+  const t = useTranscript(sessionId, onSegmentFinalized)
+  const { staff, byId: staffBy } = useStaff()
 
-  const [pickerToken, setPickerToken]   = useState<string | null>(null)
-  const [pickerAnchor, setPickerAnchor] = useState<DOMRect | null>(null)
-  const [showEnrollment, setShowEnrollment] = useState(false)
+  const [pickerSegment, setPickerSegment] = useState<TranscriptSegment | null>(null)
+  const [pickerAnchor, setPickerAnchor]   = useState<DOMRect | null>(null)
 
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -29,8 +29,8 @@ export function TranscriptPanel({ onSegmentFinalized, onSessionStart, onSessionE
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [t.segments.length])
 
-  const openPicker = useCallback((token: string, rect: DOMRect) => {
-    setPickerToken(token)
+  const openPicker = useCallback((segment: TranscriptSegment, rect: DOMRect) => {
+    setPickerSegment(segment)
     setPickerAnchor(rect)
   }, [])
 
@@ -42,31 +42,20 @@ export function TranscriptPanel({ onSegmentFinalized, onSessionStart, onSessionE
 
   const displaySpeakerMap = isLive ? t.speakerMap : MOCK_SPEAKER_MAP
 
-  const resolveSpeaker = useCallback((map: Map<string, string>, token: string): StaffMember => {
-    const staffId = map.get(token)
-    return staffId ? (staffById(staffId) ?? unknownSpeaker(token)) : unknownSpeaker(token)
-  }, [])
+  // Resolution precedence: per-segment override → token default → unresolved.
+  // Live identities come from the real staff directory; the idle preview uses
+  // the mock staff so the demo bubbles still render nicely.
+  const resolveSpeaker = useCallback((seg: TranscriptSegment): StaffMember => {
+    const overrideId = seg.seq != null ? t.segmentMap.get(seg.seq) : undefined
+    const userId = overrideId ?? displaySpeakerMap.get(seg.token)
+    if (!userId) return unknownSpeaker(seg.token)
+    const found = isLive ? staffBy(userId) : staffById(userId)
+    return found ?? unknownSpeaker(seg.token)
+  }, [isLive, staffBy, displaySpeakerMap, t.segmentMap])
 
   const handleStartSession = () => {
     onSessionStart?.()
-    t.startEnrollment(5)
-    setShowEnrollment(true)
     t.connect()
-  }
-
-  const handleEnrollmentFinish = () => {
-    setShowEnrollment(false)
-    t.finishEnrollment()
-  }
-
-  const handleEnrollmentSkip = () => {
-    setShowEnrollment(false)
-    t.skipEnrollment()
-  }
-
-  const handleRollCall = () => {
-    t.startEnrollment(5)
-    setShowEnrollment(true)
   }
 
   const handleStop = () => {
@@ -85,7 +74,6 @@ export function TranscriptPanel({ onSegmentFinalized, onSessionStart, onSessionE
         connectionState={t.connectionState}
         audioLevel={t.audioLevel}
         speakerCount={uniqueTokens.length}
-        onRollCall={handleRollCall}
       />
 
       {t.errorMessage && (
@@ -97,7 +85,7 @@ export function TranscriptPanel({ onSegmentFinalized, onSessionStart, onSessionE
           <Bubble
             key={seg.id}
             segment={seg}
-            speaker={resolveSpeaker(displaySpeakerMap, seg.token)}
+            speaker={resolveSpeaker(seg)}
             onAvatarClick={openPicker}
           />
         ))}
@@ -114,26 +102,19 @@ export function TranscriptPanel({ onSegmentFinalized, onSessionStart, onSessionE
         onStop={handleStop}
       />
 
-      {pickerToken && pickerAnchor && (
+      {pickerSegment && pickerAnchor && (
         <SpeakerPickerPopover
-          token={pickerToken}
-          currentStaffId={t.speakerMap.get(pickerToken) ?? null}
-          onAssign={staffId => t.assignSpeaker(pickerToken, staffId)}
-          onUnassign={() => t.unassignSpeaker(pickerToken)}
-          onClose={() => { setPickerToken(null); setPickerAnchor(null) }}
+          token={pickerSegment.token}
+          seq={pickerSegment.seq}
+          staff={staff}
+          currentTokenUserId={t.speakerMap.get(pickerSegment.token) ?? null}
+          currentSegmentUserId={pickerSegment.seq != null ? (t.segmentMap.get(pickerSegment.seq) ?? null) : null}
+          onAssignToken={userId => t.assignSpeaker(pickerSegment.token, userId)}
+          onAssignSegment={userId => { if (pickerSegment.seq != null) t.assignSegment(pickerSegment.seq, userId) }}
+          onClearToken={() => t.unassignSpeaker(pickerSegment.token)}
+          onClearSegment={() => { if (pickerSegment.seq != null) t.unassignSegment(pickerSegment.seq) }}
+          onClose={() => { setPickerSegment(null); setPickerAnchor(null) }}
           anchorRect={pickerAnchor}
-        />
-      )}
-
-      {showEnrollment && (
-        <EnrollmentModal
-          slots={t.enrollmentSlots}
-          currentIndex={t.currentSlotIndex}
-          audioLevel={t.audioLevel}
-          onNext={t.advanceEnrollmentSlot}
-          onConfirmSlot={t.confirmEnrollmentSlot}
-          onFinish={handleEnrollmentFinish}
-          onSkip={handleEnrollmentSkip}
         />
       )}
     </div>

@@ -1,6 +1,6 @@
-import { useRef, useState, useCallback, useEffect } from 'react'
-import type { ConnectionState, TranscriptSegment, EnrollmentSlot } from './types'
-import { useEnrollment } from './useEnrollment'
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import type { ConnectionState, TranscriptSegment } from './types'
 
 // ── Correct Soniox endpoint & model ──────────────────────────────────────────
 const SONIOX_WS_URL = 'wss://stt-rt.soniox.com/transcribe-websocket'
@@ -33,50 +33,106 @@ export type UseTranscriptReturn = {
   segments: TranscriptSegment[]
   partialSegment: TranscriptSegment | null
   clearSegments: () => void
+  // Per-token default identity (speaker_token → user_id), backed by session_speakers.
   speakerMap: Map<string, string>
-  assignSpeaker: (token: string, staffId: string) => void
+  assignSpeaker: (token: string, userId: string) => void
   unassignSpeaker: (token: string) => void
-  enrollmentActive: boolean
-  enrollmentSlots: EnrollmentSlot[]
-  currentSlotIndex: number
-  startEnrollment: (expectedCount: number) => void
-  advanceEnrollmentSlot: () => void
-  confirmEnrollmentSlot: (slotIndex: number, staffId: string) => void
-  finishEnrollment: () => void
-  skipEnrollment: () => void
+  // Per-segment override (seq → user_id), backed by segment_speakers.
+  segmentMap: Map<number, string>
+  assignSegment: (seq: number, userId: string) => void
+  unassignSegment: (seq: number) => void
   audioLevel: number
 }
 
 let segId = 0
 
-export function useTranscript(onSegmentFinalized?: (seg: TranscriptSegment) => void): UseTranscriptReturn {
+export function useTranscript(
+  sessionId: string,
+  onSegmentFinalized?: (seg: TranscriptSegment) => void,
+): UseTranscriptReturn {
+  const supabase = useMemo(() => createClient(), [])
+
   const [connectionState, setConnectionState] = useState<ConnectionState>('idle')
   const [errorMessage, setErrorMessage]       = useState<string | null>(null)
   const [segments, setSegments]               = useState<TranscriptSegment[]>([])
   const [partialSegment, setPartialSegment]   = useState<TranscriptSegment | null>(null)
   const [speakerMap, setSpeakerMap]           = useState<Map<string, string>>(new Map())
+  const [segmentMap, setSegmentMap]           = useState<Map<number, string>>(new Map())
   const [audioLevel, setAudioLevel]           = useState(0)
 
   const onSegFinalizedRef = useRef(onSegmentFinalized)
   useEffect(() => { onSegFinalizedRef.current = onSegmentFinalized }, [onSegmentFinalized])
 
-  // ── Speaker mapping ──────────────────────────────────────────────────────────
+  // ── Load any saved speaker attribution for this session ──────────────────────
 
-  const assignSpeaker = useCallback((token: string, staffId: string) => {
-    setSpeakerMap(prev => new Map(prev).set(token, staffId))
-  }, [])
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('session_speakers')
+      .select('speaker_token, user_id')
+      .eq('session_id', sessionId)
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return
+        setSpeakerMap(new Map(
+          data.filter(r => r.user_id).map(r => [r.speaker_token as string, r.user_id as string]),
+        ))
+      })
+    supabase
+      .from('segment_speakers')
+      .select('seq, user_id')
+      .eq('session_id', sessionId)
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return
+        setSegmentMap(new Map(data.map(r => [Number(r.seq), r.user_id as string])))
+      })
+    return () => { cancelled = true }
+  }, [sessionId, supabase])
+
+  // ── Speaker mapping (token default) — mirrored to session_speakers ───────────
+
+  const assignSpeaker = useCallback((token: string, userId: string) => {
+    setSpeakerMap(prev => new Map(prev).set(token, userId))
+    supabase
+      .from('session_speakers')
+      .upsert(
+        { session_id: sessionId, speaker_token: token, user_id: userId },
+        { onConflict: 'session_id,speaker_token' },
+      )
+      .then(({ error }) => { if (error) console.error('assign speaker failed', error) })
+  }, [sessionId, supabase])
 
   const unassignSpeaker = useCallback((token: string) => {
     setSpeakerMap(prev => { const n = new Map(prev); n.delete(token); return n })
-  }, [])
+    supabase
+      .from('session_speakers')
+      .delete()
+      .eq('session_id', sessionId)
+      .eq('speaker_token', token)
+      .then(({ error }) => { if (error) console.error('unassign speaker failed', error) })
+  }, [sessionId, supabase])
 
-  // ── Enrollment (speaker roll-call) ───────────────────────────────────────────
+  // ── Segment override — mirrored to segment_speakers ──────────────────────────
 
-  const {
-    enrollmentActive, enrollmentSlots, currentSlotIndex, trackEnrollment,
-    startEnrollment, advanceEnrollmentSlot,
-    confirmEnrollmentSlot, finishEnrollment, skipEnrollment,
-  } = useEnrollment(assignSpeaker)
+  const assignSegment = useCallback((seq: number, userId: string) => {
+    setSegmentMap(prev => new Map(prev).set(seq, userId))
+    supabase
+      .from('segment_speakers')
+      .upsert(
+        { session_id: sessionId, seq, user_id: userId },
+        { onConflict: 'session_id,seq' },
+      )
+      .then(({ error }) => { if (error) console.error('assign segment failed', error) })
+  }, [sessionId, supabase])
+
+  const unassignSegment = useCallback((seq: number) => {
+    setSegmentMap(prev => { const n = new Map(prev); n.delete(seq); return n })
+    supabase
+      .from('segment_speakers')
+      .delete()
+      .eq('session_id', sessionId)
+      .eq('seq', seq)
+      .then(({ error }) => { if (error) console.error('unassign segment failed', error) })
+  }, [sessionId, supabase])
 
   const wsRef          = useRef<WebSocket | null>(null)
   const recorderRef    = useRef<MediaRecorder | null>(null)
@@ -114,6 +170,29 @@ export function useTranscript(onSegmentFinalized?: (seg: TranscriptSegment) => v
     animFrameRef.current = requestAnimationFrame(tick)
   }, [])
 
+  // ── Persist a finalized segment, then attach its DB seq to the bubble ────────
+
+  const persistSegment = useCallback((seg: TranscriptSegment) => {
+    supabase
+      .from('transcript_segments')
+      .insert({
+        session_id:    sessionId,
+        speaker_token: seg.token,
+        text:          seg.text,
+        start_ms:      seg.start_ms,
+      })
+      .select('seq')
+      .single()
+      .then(({ data, error }) => {
+        if (error) { console.error('segment save failed', error); return }
+        if (data) {
+          const seq = Number(data.seq)
+          // Tag the in-memory bubble so per-segment override can target this row.
+          setSegments(prev => prev.map(s => (s.id === seg.id ? { ...s, seq } : s)))
+        }
+      })
+  }, [sessionId, supabase])
+
   // ── Flush a pending buffer entry into a final segment ─────────────────────
 
   const flushPending = useCallback((speakerTok: string) => {
@@ -127,16 +206,15 @@ export function useTranscript(onSegmentFinalized?: (seg: TranscriptSegment) => v
       ...prev.filter(s => s.id !== `buf_${speakerTok}`),
       newSeg,
     ])
+    persistSegment(newSeg)
     onSegFinalizedRef.current?.(newSeg)
-  }, [])
+  }, [persistSegment])
 
   // ── Token → segment grouping (buffered) ───────────────────────────────────
 
   const handleTokens = useCallback((tokens: SonioxToken[], audioMs: number) => {
     void audioMs
     if (!tokens.length) return
-
-    trackEnrollment(tokens)
 
     const nowMs         = Date.now() - sessionStartRef.current
     const finalTokens   = tokens.filter(t => t.is_final)
@@ -205,7 +283,7 @@ export function useTranscript(onSegmentFinalized?: (seg: TranscriptSegment) => v
     } else {
       setPartialSegment(null)
     }
-  }, [trackEnrollment, flushPending])
+  }, [flushPending])
 
   // ── Connect ────────────────────────────────────────────────────────────────
 
@@ -330,9 +408,7 @@ export function useTranscript(onSegmentFinalized?: (seg: TranscriptSegment) => v
     connect, disconnect, pause, resume,
     segments, partialSegment, clearSegments,
     speakerMap, assignSpeaker, unassignSpeaker,
-    enrollmentActive, enrollmentSlots, currentSlotIndex,
-    startEnrollment, advanceEnrollmentSlot,
-    confirmEnrollmentSlot, finishEnrollment, skipEnrollment,
+    segmentMap, assignSegment, unassignSegment,
     audioLevel,
   }
 }

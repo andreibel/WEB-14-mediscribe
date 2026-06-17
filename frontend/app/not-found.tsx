@@ -7,7 +7,6 @@ import FuzzyText from "@/components/ui/FuzzyText";
 const links = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
-  { href: "/docs", label: "Docs" },
   { href: "/login", label: "Login" },
   { href: "/register", label: "Register" },
 ];

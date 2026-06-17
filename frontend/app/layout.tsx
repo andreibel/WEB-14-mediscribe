@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, JetBrains_Mono } from "next/font/google";
 import { AppNav } from "@/components/app/nav/AppNav";
+import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +25,11 @@ export const metadata: Metadata = {
  * `(auth)`). Sets the font and applies the persisted theme before paint
  * so there's no light/dark flash on load.
  */
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Decide the nav variant on the server so the correct nav paints immediately.
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html lang="en" className={cn("font-mono", manrope.variable, jetbrainsMono.variable)} suppressHydrationWarning>
       <head>
@@ -36,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-sans antialiased">
-        <AppNav />
+        <AppNav initialAuthed={!!user} />
         {children}
       </body>
     </html>

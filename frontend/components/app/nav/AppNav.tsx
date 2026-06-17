@@ -1,5 +1,6 @@
 "use client";
 
+import {useEffect, useState} from "react";
 import Link from "next/link";
 import {usePathname, useRouter} from "next/navigation";
 import {Settings, User} from "lucide-react";
@@ -16,7 +17,6 @@ import type {NavAction, NavCircle, NavLink} from "./navTypes";
 const PUBLIC_LEFT_LINKS: NavLink[] = [
   {href: "/", label: "Home"},
   {href: "/about", label: "About"},
-  {href: "/guides", label: "Guides"},
 ];
 
 const PUBLIC_RIGHT_LINKS: NavAction[] = [
@@ -29,7 +29,6 @@ const PUBLIC_CIRCLES: NavCircle[] = [];
 
 const APP_LEFT_LINKS: NavLink[] = [
   {href: "/dashboard", label: "Dashboard"},
-  {href: "/dashboard", label: "New Session"},
 ];
 
 // No href → rendered as a button; the onClick is injected in the component.
@@ -64,33 +63,46 @@ const spring = {type: "spring" as const, stiffness: 500, damping: 32, mass: 0.8}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-const PUBLIC_PATHS = ["/login", "/register", "/guides", "/about"];
-const APP_PATHS = ["/dashboard", "/session", "/settings", "/profile", "/notifications"];
-
-export function AppNav() {
+/**
+ * Global top nav. Which variant shows — public (Login/Register) vs app
+ * (Dashboard/Logout) — is driven by AUTH STATE, never by the URL path.
+ *
+ * `initialAuthed` comes from the server layout so the correct nav renders on
+ * first paint (no flash); `onAuthStateChange` then keeps it live across
+ * login/logout without a full reload.
+ */
+export function AppNav({initialAuthed}: {initialAuthed: boolean}) {
   const pathname = usePathname();
   const router = useRouter();
+  const [authed, setAuthed] = useState(initialAuthed);
 
-  const isMain = PUBLIC_PATHS.some(p => pathname?.startsWith(p));
-  const isApp = APP_PATHS.some(p => pathname?.startsWith(p));
+  useEffect(() => {
+    const supabase = createClient();
+    const {
+      data: {subscription},
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session?.user);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   async function handleLogout() {
     const supabase = createClient();
-    await supabase.auth.signOut();
+    await supabase.auth.signOut(); // fires onAuthStateChange → setAuthed(false)
     router.push("/login");
     router.refresh(); // re-run Server Components so they see the cleared session
   }
 
-  const left_links = isApp ? APP_LEFT_LINKS : PUBLIC_LEFT_LINKS;
-  const right_links = isApp
+  const left_links = authed ? APP_LEFT_LINKS : PUBLIC_LEFT_LINKS;
+  const right_links = authed
     ? APP_RIGHT_LINKS.map(a => (a.id === "logout" ? {...a, onClick: handleLogout} : a))
     : PUBLIC_RIGHT_LINKS;
-  const circles = isApp ? APP_CIRCLES : PUBLIC_CIRCLES;
+  const circles = authed ? APP_CIRCLES : PUBLIC_CIRCLES;
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center gap-3 px-4 sm:px-8">
       {/* Logo */}
-      <Link href="/" className="mr-1 shrink-0"> <Logo size={22}/></Link>
+      <Link href={authed ? "/dashboard" : "/"} className="mr-1 shrink-0"> <Logo size={22}/></Link>
 
       {/* Left: page left_links — shown in every section that has links */}
       <AnimatePresence initial={false}>
@@ -101,11 +113,11 @@ export function AppNav() {
             {left_links.filter(l => !l.hidden).map(({href, label}) => {
               const active = pathname === href;
               return (
-                <Link key={href} href={href} className="relative rounded-full px-4 py-1.5">
+                <Link key={`${href}:${label}`} href={href} className="relative rounded-full px-4 py-1.5">
                   {active && (<motion.span layoutId="nav-bubble" className="absolute inset-0 rounded-full bg-[#C15F3C] shadow-sm" transition={spring}/>)}
                   <span className={`relative z-10 text-[13px] font-semibold transition-colors ${
                     active
-                      ? "text-white" : 
+                      ? "text-white" :
                       "text-[#4A3F35]/75 hover:text-[#4A3F35] dark:text-[#9A8F82] dark:hover:text-[#D4C9BE]"
                   }`}>
                     {label}
@@ -119,8 +131,8 @@ export function AppNav() {
 
       <div className="flex-1"/>
 
-      {/* Right: auth pages get the animated segmented pill */}
-      {isMain ? (
+      {/* Right: logged-out users get the animated segmented Login/Register pill */}
+      {!authed ? (
         <div className={`${pill} text-[13px] font-semibold`}>
           {right_links.filter(a => !a.hidden && a.href).map(({id, label, href}) => {
             const active = pathname === href;
@@ -145,7 +157,7 @@ export function AppNav() {
           })}
         </div>
       ) : (
-        /* All other pages: action buttons in the same pill */
+        /* Logged-in: action buttons (Logout) in the same pill */
         <div className={pill}>
           {right_links.filter(a => !a.hidden).map(({id, label, icon: Icon, href, onClick}, i) => {
             const isPrimary = i === right_links.filter(a => !a.hidden).length - 1;

@@ -71,22 +71,14 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   const pendingCountRef = useRef(0)
 
   const handleSegment = useCallback(async (seg: TranscriptSegment) => {
-    // 1. Persist every finalized segment (append-only) — runs regardless of AI toggle.
-    supabase
-      .from('transcript_segments')
-      .insert({
-        session_id:    sessionId,
-        speaker_token: seg.token,
-        text:          seg.text,
-        start_ms:      seg.start_ms,
-      })
-      .then(({ error }) => { if (error) console.error('segment save failed', error) })
+    // Persistence of the segment row (and capturing its seq) lives in
+    // useTranscript now. Here we only drive the protocol engine and AI.
 
-    // 2. Feed the protocol engine (real-time, never persisted) — drives the
+    // 1. Feed the protocol engine (real-time, never persisted) — drives the
     //    left panel's detection, timers and notifications.
     pushProtocolSegment(seg.text)
 
-    // 3. Accumulate for AI context, stamped with the wall-clock time it landed.
+    // 2. Accumulate for AI context, stamped with the wall-clock time it landed.
     const { time: clock } = nowDateTime()
     allSegmentsRef.current.push({ ...seg, clock })
     pendingCountRef.current += 1
@@ -150,6 +142,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
           <Window title="Transcript">
             <TranscriptPanel
+              sessionId={sessionId}
               onSegmentFinalized={handleSegment}
               onSessionStart={handleSessionStart}
               onSessionEnd={handleSessionEnd}

@@ -16,6 +16,28 @@ body {
   height: 100%;
 }
 
+/* Hero signature graphic: bars "breathe" like live audio, scaling between
+   --wave-min and full height. */
+@layer utilities {
+  @keyframes wave-bar {
+    from {
+      transform: scaleY(var(--wave-min, 0.55));
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+}
+
+/* A real media query (not a Tailwind variant class) so this can't lose a
+   specificity tie against the animation utility it's meant to override. */
+@media (prefers-reduced-motion: reduce) {
+  .wave-bar {
+    animation: none !important;
+    transform: scaleY(0.82) !important;
+  }
+}
+
 @theme inline {
   --font-heading: var(--font-mono);
   --font-mono: var(--font-mono);

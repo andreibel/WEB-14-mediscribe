@@ -1,0 +1,12 @@
+# OS
+.DS_Store
+
+# IDE
+.idea/
+
+# local tooling
+.mcp.json
+
+# drawio autosave backups
+.$*.drawio.bkp
+*.drawio.bkp

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Settings2, X, Volume2, VolumeX, Radio, BellRing, FlaskConical, Crosshair } from 'lucide-react'
+import { Toggle } from '@/components/ui/Toggle'
 import type { ProtocolEngine } from './useProtocolEngine'
 import { ProtocolPicker } from './ProtocolPicker'
 import { ProtocolFlow } from './ProtocolFlow'
@@ -43,10 +44,10 @@ export function ProtocolPanel({ engine }: { engine: ProtocolEngine }) {
       {/* Settings */}
       {showSettings && (
         <div className="shrink-0 space-y-1 border-b border-[#E8E2D9] bg-[#FBF8F3] px-3 py-2 dark:border-[#2E2A27] dark:bg-[#1A1714]">
-          <SettingToggle icon={Radio} label="זיהוי פרוטוקול אוטומטי" on={settings.autoDetect} onClick={() => updateSettings({ autoDetect: !settings.autoDetect })} />
-          <SettingToggle icon={Crosshair} label="מעקב מצלמה אחר השלב הנוכחי" on={settings.follow} onClick={() => updateSettings({ follow: !settings.follow })} />
-          <SettingToggle icon={settings.sound ? Volume2 : VolumeX} label="צליל התראה" on={settings.sound} onClick={() => updateSettings({ sound: !settings.sound })} />
-          <SettingToggle icon={BellRing} label="התראות דפדפן" on={settings.browserNotify} onClick={() => updateSettings({ browserNotify: !settings.browserNotify })} />
+          <Toggle icon={Radio} label="זיהוי פרוטוקול אוטומטי" on={settings.autoDetect} onClick={() => updateSettings({ autoDetect: !settings.autoDetect })} />
+          <Toggle icon={Crosshair} label="מעקב מצלמה אחר השלב הנוכחי" on={settings.follow} onClick={() => updateSettings({ follow: !settings.follow })} />
+          <Toggle icon={settings.sound ? Volume2 : VolumeX} label="צליל התראה" on={settings.sound} onClick={() => updateSettings({ sound: !settings.sound })} />
+          <Toggle icon={BellRing} label="התראות דפדפן" on={settings.browserNotify} onClick={() => updateSettings({ browserNotify: !settings.browserNotify })} />
         </div>
       )}
 
@@ -69,19 +70,6 @@ export function ProtocolPanel({ engine }: { engine: ProtocolEngine }) {
         </>
       )}
     </div>
-  )
-}
-
-function SettingToggle({ icon: Icon, label, on, onClick }: { icon: typeof Radio; label: string; on: boolean; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-right hover:bg-[#EFEAE2] dark:hover:bg-[#2A2724]">
-      <span className="flex items-center gap-2 text-[11.5px] font-medium text-[#4a4640] dark:text-[#C0BDB8]">
-        <Icon size={13} className="text-[#8A7E72]" /> {label}
-      </span>
-      <span className={['relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors', on ? 'bg-[#c15f3c]' : 'bg-[#cfc8bd] dark:bg-[#3a3835]'].join(' ')}>
-        <span className={['inline-block h-3 w-3 rounded-full bg-white shadow-sm transition-transform', on ? 'translate-x-[0.875rem]' : 'translate-x-0.5'].join(' ')} />
-      </span>
-    </button>
   )
 }
 

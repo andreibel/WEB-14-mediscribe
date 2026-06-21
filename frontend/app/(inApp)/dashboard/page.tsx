@@ -1,14 +1,8 @@
-import Link from "next/link";
 import { Logo } from "@/components/app/Logo";
 import { createClient } from "@/lib/supabase/server";
 import { NewSessionButton } from "./NewSessionButton";
-
-type SessionRow = {
-  id: string;
-  status: string;
-  started_at: string;
-  segment_count: number;
-};
+import { SessionsExplorer } from "./SessionsExplorer";
+import type { SessionRow } from "./SessionsTable";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -18,7 +12,7 @@ export default async function DashboardPage() {
     .from("sessions")
     .select("id, status, started_at, segment_count")
     .order("started_at", { ascending: false })
-    .limit(10);
+    .limit(100);
 
   const rows = (sessions ?? []) as SessionRow[];
 
@@ -32,56 +26,13 @@ export default async function DashboardPage() {
         <NewSessionButton />
       </div>
 
-      <section className="w-full max-w-md">
+      <section className="w-full max-w-3xl">
         <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[#8A7E72]">
           מפגשים אחרונים
         </h2>
 
-        {rows.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-[#E8E2D9] dark:border-[#2E2A27] px-4 py-6 text-center text-[13px] text-[#8A7E72]">
-            עדיין אין מפגשים — צור מפגש חדש כדי להתחיל.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-1.5">
-            {rows.map((s) => (
-              <li key={s.id}>
-                <Link
-                  href={`/session/${s.id}`}
-                  className="flex items-center justify-between rounded-lg border border-[#E8E2D9] dark:border-[#2E2A27] bg-[#FFFEF9] dark:bg-[#1C1917] px-3 py-2.5 hover:border-[#C15F3C] transition-colors"
-                >
-                  <div className="flex flex-col">
-                    <span className="font-mono text-[12px] text-[#1A1A18] dark:text-[#F3EEE6]">
-                      {s.id.slice(0, 8)}
-                    </span>
-                    <span className="text-[10px] text-[#8A7E72]">
-                      {new Date(s.started_at).toLocaleString("he-IL")}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-[#8A7E72]">
-                      {s.segment_count} segments
-                    </span>
-                    <StatusPill status={s.status} />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <SessionsExplorer rows={rows} />
       </section>
     </main>
-  );
-}
-
-function StatusPill({ status }: { status: string }) {
-  const color =
-    status === "active" ? "bg-emerald-100 text-emerald-700"
-    : status === "ended" ? "bg-gray-100 text-gray-600"
-    : status === "error" ? "bg-red-100 text-red-700"
-    : "bg-amber-100 text-amber-700";
-  return (
-    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${color}`}>
-      {status}
-    </span>
   );
 }

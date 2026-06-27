@@ -36,22 +36,28 @@ export function TranscriptPanel({ sessionId, onSegmentFinalized, onSessionStart,
 
   const isLive = t.connectionState !== 'idle' && t.connectionState !== 'error'
 
+  // Show real data whenever the session is live OR we have segments saved from a
+  // previous session — so reopening an ended session previews its transcript.
+  // The mock demo bubbles only stand in for a brand-new, never-recorded session.
+  const hasSaved = t.segments.length > 0
+  const showReal = isLive || hasSaved
+
   const displaySegments = isLive
     ? (t.partialSegment ? [...t.segments, t.partialSegment] : t.segments)
-    : MOCK_SEGMENTS
+    : hasSaved ? t.segments : MOCK_SEGMENTS
 
-  const displaySpeakerMap = isLive ? t.speakerMap : MOCK_SPEAKER_MAP
+  const displaySpeakerMap = showReal ? t.speakerMap : MOCK_SPEAKER_MAP
 
   // Resolution precedence: per-segment override → token default → unresolved.
-  // Live identities come from the real staff directory; the idle preview uses
-  // the mock staff so the demo bubbles still render nicely.
+  // Real data resolves against the live staff directory; the mock demo uses the
+  // mock staff so the placeholder bubbles still render nicely.
   const resolveSpeaker = useCallback((seg: TranscriptSegment): StaffMember => {
     const overrideId = seg.seq != null ? t.segmentMap.get(seg.seq) : undefined
     const userId = overrideId ?? displaySpeakerMap.get(seg.token)
     if (!userId) return unknownSpeaker(seg.token)
-    const found = isLive ? staffBy(userId) : staffById(userId)
+    const found = showReal ? staffBy(userId) : staffById(userId)
     return found ?? unknownSpeaker(seg.token)
-  }, [isLive, staffBy, displaySpeakerMap, t.segmentMap])
+  }, [showReal, staffBy, displaySpeakerMap, t.segmentMap])
 
   const handleStartSession = () => {
     onSessionStart?.()
@@ -80,7 +86,7 @@ export function TranscriptPanel({ sessionId, onSegmentFinalized, onSessionStart,
         <ErrorBanner message={t.errorMessage} onRetry={t.connect} />
       )}
 
-      <div className={['relative flex-1 overflow-y-auto px-4 py-4 space-y-4', !isLive && 'opacity-60'].filter(Boolean).join(' ')}>
+      <div className={['relative flex-1 overflow-y-auto px-4 py-4 space-y-4', !showReal && 'opacity-60'].filter(Boolean).join(' ')}>
         {displaySegments.map(seg => (
           <Bubble
             key={seg.id}

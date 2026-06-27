@@ -12,7 +12,7 @@ import { AnimatedLogo } from '@/components/app/AnimatedLogo';
 export function BackgroundSlot({ className = '' }: { className?: string }) {
   return (
     <div
-      className={`relative h-full min-h-[300px] w-full overflow-hidden rounded-2xl border border-[#E8E2D9] dark:border-[#2E2A27] ${className}`}
+      className={`relative h-full min-h-[500px] w-full overflow-hidden rounded-2xl border border-[#E8E2D9] dark:border-[#2E2A27] ${className}`}
     >
       <Grainient
         color1="#d6bb66"

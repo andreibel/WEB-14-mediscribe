@@ -88,6 +88,35 @@ export function useTranscript(
     return () => { cancelled = true }
   }, [sessionId, supabase])
 
+  // ── Load previously saved transcript segments for this session ───────────────
+  // Display-only: we rehydrate the bubbles (with their DB seq so per-segment
+  // speaker overrides still resolve) but deliberately do NOT replay them through
+  // onSegmentFinalized — that would re-run the protocol engine's timers/alerts
+  // and re-trigger AI auto-fill on reload.
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('transcript_segments')
+      .select('seq, speaker_token, text, start_ms')
+      .eq('session_id', sessionId)
+      .order('seq', { ascending: true })
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) { console.error('transcript load failed', error); return }
+        if (!data) return
+        setSegments(data.map(r => ({
+          id:        `db_${r.seq}`,
+          seq:       Number(r.seq),
+          token:     (r.speaker_token as string) ?? 'S?',
+          text:      r.text as string,
+          words:     [],
+          start_ms:  Number(r.start_ms),
+          is_final:  true,
+        })))
+      })
+    return () => { cancelled = true }
+  }, [sessionId, supabase])
+
   // ── Speaker mapping (token default) — mirrored to session_speakers ───────────
 
   const assignSpeaker = useCallback((token: string, userId: string) => {

@@ -26,6 +26,17 @@ const FEATURES: { tag: string; icon: LucideIcon; title: string; body: string }[]
 const cardBase =
   "rounded-2xl border border-[#E8E2D9] bg-[#FFFEF9] dark:border-[#2E2A27] dark:bg-[#1C1917]";
 
+// Bento layout, declared inline (rendered into the page HTML, which is always
+// served fresh) rather than via globals.css. In Turbopack dev the stylesheet
+// chunk URL is stable, so browsers can keep a cached copy that predates new
+// rules — inlining sidesteps that and guarantees the grid columns apply:
+// 1 column on phones, pitch + visual side-by-side from 640px, full 4-up ≥1024px.
+const bentoCss = `
+.bento-grid{display:grid;grid-auto-rows:min-content;grid-template-columns:1fr;gap:1rem}
+@media(min-width:640px){.bento-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bento-grid>.bento-span-2{grid-column:span 2}}
+@media(min-width:1024px){.bento-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+`;
+
 /**
  * Bento-grid hero for the homepage. Two large tiles on top — the pitch (left)
  * and a reserved visual slot (right) — then a row of feature tiles and a wide
@@ -34,33 +45,33 @@ const cardBase =
 export function BentoGrid() {
   return (
     <section className="px-4 pt-24 pb-12 sm:pt-28">
+      <style dangerouslySetInnerHTML={{ __html: bentoCss }} />
       <div className="mx-auto max-w-5xl">
-        <div className="grid auto-rows-min grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="bento-grid">
           {/* ── Pitch tile (large) ───────────────────────────────────────── */}
-          <div className={`${cardBase} flex flex-col justify-between gap-8 p-7 sm:col-span-2 sm:row-span-2`}>
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#C15F3C]">
-                Live in the trauma room
-              </span>
-              <h1 className="mt-5 text-[30px] font-extrabold leading-[1.12] tracking-[-0.03em] text-[#1A1A18] sm:text-[38px] dark:text-[#F3EEE6]">
+          <div className={`${cardBase} bento-span-2 flex flex-col gap-3 p-5 `}>
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[#C15F3C]">
+              Live in the trauma room
+            </span>
+              <h1 className="text-[30px] font-extrabold leading-[1.12] tracking-[-0.03em] text-[#1A1A18] sm:text-[38px] dark:text-[#F3EEE6]">
                 Real-time documentation for the{" "}
                 <span className="text-[#C15F3C]">trauma room</span>.
               </h1>
-              <p className="mt-4 max-w-[44ch] text-[14.5px] leading-relaxed text-[#8A7E72] dark:text-[#9A8F82]">
+              <p className="max-w-[44ch] text-[14.5px] leading-relaxed text-[#8A7E72] dark:text-[#9A8F82]">
                 Built for the trauma team at Ziv Medical Center — captures the room,
                 structures the case, fills the form.
               </p>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
+              <div className="mt-3 flex flex-wrap items-center gap-3">
                 <Link
                   href="/login"
                   className="inline-flex h-10 items-center justify-center rounded-lg bg-[#C15F3C] px-5 text-[14px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(193,95,60,0.55)] outline-none transition-all duration-150 hover:bg-[#AD512F] active:scale-[0.985] focus-visible:ring-2 focus-visible:ring-[#C15F3C]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:hover:bg-[#D06B47] dark:focus-visible:ring-offset-[#141210]"
                 >
                   Sign in
                 </Link>
-                {/* #how-it-works resolves to the sibling <HowItWorks> section,
-                    rendered alongside this grid on the homepage (app/page.tsx).
-                    The IDE can't see the cross-component target, so it flags a
-                    false "unresolved anchor" here — the link works at runtime. */}
+                {/* Anchor target #how-it-works lives in the sibling <HowItWorks>
+                    section, which renders alongside this grid on the homepage
+                    (app/page.tsx) — so the link resolves at runtime. */}
+                {/*noinspection HtmlUnknownAnchorTarget*/}
                 <Link
                   href="#how-it-works"
                   className="inline-flex h-10 items-center justify-center rounded-lg border border-[#E3DBD0] bg-white px-5 text-[14px] font-semibold text-[#3A332D] outline-none transition-all duration-150 hover:border-[#D5CABB] hover:bg-[#F6F1EA] active:scale-[0.985] focus-visible:ring-2 focus-visible:ring-[#C15F3C]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-[#39332D] dark:bg-[#1A1714] dark:text-[#ECE5DB] dark:hover:bg-[#2A251F] dark:focus-visible:ring-offset-[#141210]"
@@ -68,13 +79,10 @@ export function BentoGrid() {
                   See how it works
                 </Link>
               </div>
-            </div>
-
-            
           </div>
 
           {/* ── Reserved visual slot (large) ─────────────────────────────── */}
-          <BackgroundSlot className="sm:col-span-2 sm:row-span-2" />
+          <BackgroundSlot className="bento-span-2" />
 
           {/* ── Feature tiles ────────────────────────────────────────────── */}
           {FEATURES.map(({ tag, icon: Icon, title, body }) => (

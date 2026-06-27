@@ -26,9 +26,12 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
   const [loaded, setLoaded]          = useState(false)
 
   // Read the toggle from inside the (otherwise stable) segment handler
-  // without re-creating it on every flip.
+  // without re-creating it on every flip. Mirror it via an effect (not during
+  // render) so we never write a ref while rendering.
   const aiEnabledRef = useRef(aiEnabled)
-  aiEnabledRef.current = aiEnabled
+  useEffect(() => {
+    aiEnabledRef.current = aiEnabled
+  }, [aiEnabled])
 
   // Load any previously saved form for this session on mount.
   useEffect(() => {
@@ -106,7 +109,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     } finally {
       setIsUpdating(false)
     }
-  }, [formData, sessionId, supabase, pushProtocolSegment])
+  }, [formData, pushProtocolSegment])
 
   // Inject the start date/time once, when recording begins — so the AI never
   // fills (or later overwrites) these. Only sets fields still empty.

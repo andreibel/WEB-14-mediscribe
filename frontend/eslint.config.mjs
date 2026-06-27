@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // JetBrains "Inspect Code" HTML export artifacts (local, untracked) — not
+    // project source, so don't lint script.js/styles.css next to index.html.
+    "index.html",
+    "script.js",
+    "styles.css",
   ]),
 ]);
 

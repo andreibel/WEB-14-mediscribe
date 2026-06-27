@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 
 const iconBtn =
@@ -8,17 +8,26 @@ const iconBtn =
   "text-[#6B5E52] ring-1 ring-black/10 hover:bg-black/5 " +
   "dark:text-[#9A8F82] dark:ring-white/10 dark:hover:bg-white/8";
 
+// The `dark` class on <html> is the single source of truth (set pre-paint by the
+// no-flash script in the root layout). Read it via useSyncExternalStore so the
+// toggle stays in sync without a setState-in-effect, and re-renders if the class
+// changes from anywhere.
+function subscribe(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observer.disconnect();
+}
+const getSnapshot = () => document.documentElement.classList.contains("dark");
+const getServerSnapshot = () => true; // matches SSR default; corrected pre-paint
+
 export function ThemeToggle() {
-  // The no-flash script in the root layout sets the initial `dark` class before
-  // paint; we read that on mount so this toggle is the single source of truth.
-  const [dark, setDark] = useState(true);
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
-  }, []);
+  const dark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   function toggle() {
     const next = !dark;
-    setDark(next);
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("ms-theme", next ? "dark" : "light");
   }

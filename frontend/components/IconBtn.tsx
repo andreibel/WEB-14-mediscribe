@@ -1,7 +1,9 @@
+import { type ReactNode } from "react"
+
 interface IconBtnProps {
   onClick?: () => void
   label: string
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }
 

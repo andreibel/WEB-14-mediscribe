@@ -274,7 +274,7 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
         canvas.addEventListener('click', handleClick);
       }
 
-      const cleanup = () => {
+      canvas.cleanupFuzzyText = () => {
         window.cancelAnimationFrame(animationFrameId);
         clearTimeout(glitchTimeoutId);
         clearTimeout(glitchEndTimeoutId);
@@ -289,8 +289,6 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
           canvas.removeEventListener('click', handleClick);
         }
       };
-
-      canvas.cleanupFuzzyText = cleanup;
     };
 
     void init();

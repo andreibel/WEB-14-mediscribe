@@ -1,8 +1,9 @@
+import { type ButtonHTMLAttributes } from "react";
 import { Loader2 } from "lucide-react";
 
 type Variant = "primary" | "outline";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   loading?: boolean;
   fullWidth?: boolean;

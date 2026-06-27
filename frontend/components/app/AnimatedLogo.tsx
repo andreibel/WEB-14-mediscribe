@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type CSSProperties } from "react";
 
 /**
  * mediscribe brand mark — hand-drawn, organic filled "voice pyramid".
@@ -75,7 +75,7 @@ export function AnimatedLogo({ size = 40, animate = false, className = "" }: Ani
                     "--d": `${t.dur}s`,
                     "--min": String(t.min),
                     animationDelay: `${t.delay}s`,
-                  } as React.CSSProperties)
+                  } as CSSProperties)
                 : undefined
             }
           />

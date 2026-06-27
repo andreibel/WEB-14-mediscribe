@@ -7,6 +7,7 @@ import { TextField } from "@/components/ui/TextField";
 import { PasswordStrength } from "@/components/ui/PasswordStrength";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
+import { updateUserPassword } from "@/lib/auth/updateUserPassword";
 
 export function ProfileActions() {
   const router = useRouter();
@@ -20,23 +21,16 @@ export function ProfileActions() {
     e.preventDefault();
     setError(null);
     setDone(false);
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
     setLoading(true);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password });
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
+    const message = await updateUserPassword(password);
+    setLoading(false);
+    if (message) {
+      setError(message);
       return;
     }
     setPassword("");
     setDone(true);
-    setLoading(false);
   }
 
   async function handleSignOut() {

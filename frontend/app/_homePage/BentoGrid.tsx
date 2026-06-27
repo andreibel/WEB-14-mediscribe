@@ -57,6 +57,10 @@ export function BentoGrid() {
                 >
                   Sign in
                 </Link>
+                {/* #how-it-works resolves to the sibling <HowItWorks> section,
+                    rendered alongside this grid on the homepage (app/page.tsx).
+                    The IDE can't see the cross-component target, so it flags a
+                    false "unresolved anchor" here — the link works at runtime. */}
                 <Link
                   href="#how-it-works"
                   className="inline-flex h-10 items-center justify-center rounded-lg border border-[#E3DBD0] bg-white px-5 text-[14px] font-semibold text-[#3A332D] outline-none transition-all duration-150 hover:border-[#D5CABB] hover:bg-[#F6F1EA] active:scale-[0.985] focus-visible:ring-2 focus-visible:ring-[#C15F3C]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-[#39332D] dark:bg-[#1A1714] dark:text-[#ECE5DB] dark:hover:bg-[#2A251F] dark:focus-visible:ring-offset-[#141210]"

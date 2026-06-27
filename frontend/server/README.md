@@ -27,12 +27,12 @@ later if we ever need to.
 
 ## Map
 
-| Backend module                 | Used by route                  | Does |
-|--------------------------------|--------------------------------|------|
-| `server/ai/form-fill.ts`       | `app/api/form-fill/route.ts`   | Fills the MoH form from a transcript via Anthropic |
-| `server/transcription/soniox.ts` | `app/api/soniox-token/route.ts` | Mints a short-lived Soniox API key |
-| `server/auth/callback.ts`      | `app/api/auth/callback/route.ts` | Exchanges an email-link code/OTP for a session |
-| `server/http.ts`               | all of the above               | Shared auth gate + response helpers |
+| Backend module                   | Used by route                    | Does                                               |
+|----------------------------------|----------------------------------|----------------------------------------------------|
+| `server/ai/form-fill.ts`         | `app/api/form-fill/route.ts`     | Fills the MoH form from a transcript via Anthropic |
+| `server/transcription/soniox.ts` | `app/api/soniox-token/route.ts`  | Mints a short-lived Soniox API key                 |
+| `server/auth/callback.ts`        | `app/api/auth/callback/route.ts` | Exchanges an email-link code/OTP for a session     |
+| `server/http.ts`                 | all of the above                 | Shared auth gate + response helpers                |
 
 > Note: `lib/supabase/server.ts` is server-only Supabase infrastructure (the SSR
 > client). It stays under `lib/` next to its browser counterpart `client.ts`, but

@@ -7,8 +7,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* noinspection CssUnresolvedCustomProperty -- --font-manrope is injected at
-     runtime by the Next font loader (manrope.variable on <html>, see layout.tsx). */
+  /* --font-manrope is injected at runtime by the Next font loader
+     (manrope.variable on <html>, see layout.tsx), so static analysis can't
+     resolve it here. */
+  /*noinspection CssUnresolvedCustomProperty*/
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;
 }

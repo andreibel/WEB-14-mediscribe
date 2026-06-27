@@ -1,13 +1,13 @@
 "use client";
 
-import { forwardRef, useState } from "react";
+import { forwardRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { Eye, EyeOff, type LucideIcon } from "lucide-react";
 
-interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   icon?: LucideIcon;
   error?: string;
-  hint?: React.ReactNode;
+  hint?: ReactNode;
 }
 
 /** Labelled text input with optional leading icon, password reveal, error + hint. */

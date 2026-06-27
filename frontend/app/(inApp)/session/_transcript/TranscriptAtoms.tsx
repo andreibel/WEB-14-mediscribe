@@ -1,4 +1,4 @@
-import { Wifi, WifiOff, Loader2, AlertCircle, Pause, Mic } from 'lucide-react'
+import { Wifi, WifiOff, Loader2, AlertCircle, Pause } from 'lucide-react'
 import type { ConnectionState } from './types'
 
 export function LiveDot({ active }: { active: boolean }) {
@@ -50,15 +50,6 @@ export function ErrorBanner({ message, onRetry }: { message: string; onRetry: ()
       <AlertCircle size={14} className="text-red-500 shrink-0" />
       <p className="text-[11px] text-red-600 dark:text-red-400 flex-1" dir="rtl">{message}</p>
       <button onClick={onRetry} className="text-[10px] text-red-500 underline shrink-0">נסה שוב</button>
-    </div>
-  )
-}
-
-export function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40 select-none">
-      <Mic size={32} className="text-[#c15f3c]" />
-      <p className="text-[12px] text-[#7a7670]" dir="rtl">ממתין לתחילת שיחה…</p>
     </div>
   )
 }

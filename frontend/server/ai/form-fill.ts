@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type {MoHFormData} from "../../app/(inApp)/session/_form/formSchema";
-import type {TranscriptSegment} from "../../app/(inApp)/session/_transcript/types";
+import type {MoHFormData} from "@/app/(inApp)/session/_form/formSchema";
+import type {TranscriptSegment} from "@/app/(inApp)/session/_transcript/types";
 
 /**
  * Backend logic for AI-assisted form filling. No HTTP here — the route handler

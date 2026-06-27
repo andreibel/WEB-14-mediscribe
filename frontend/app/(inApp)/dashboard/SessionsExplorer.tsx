@@ -58,7 +58,7 @@ export function SessionsExplorer({ rows }: { rows: SessionRow[] }) {
     });
 
     return [...filtered].sort((a, b) => {
-      let cmp = 0;
+      let cmp: number;
       if (sortKey === "started_at") cmp = a.started_at.localeCompare(b.started_at);
       else if (sortKey === "status") cmp = a.status.localeCompare(b.status);
       else cmp = a.segment_count - b.segment_count;

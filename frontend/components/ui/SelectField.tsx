@@ -1,6 +1,7 @@
+import { type SelectHTMLAttributes } from "react";
 import { type LucideIcon } from "lucide-react";
 
-interface SelectFieldProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
   icon?: LucideIcon;
   options: { value: string; label: string }[];

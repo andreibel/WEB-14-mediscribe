@@ -27,11 +27,6 @@ export const DEFAULT_PROTOCOL_SETTINGS: ProtocolSettings = {
  *  page can mirror Supabase writes into it and keep an active session in sync). */
 export const PROTOCOL_SETTINGS_KEY = "mediscribe.protocol.settings";
 
-/** Whole-blob shape of `users.preferences`. */
-export interface UserPreferences {
-  protocol: ProtocolSettings;
-}
-
 /**
  * Coerce an untrusted value (jsonb from the DB, parsed localStorage) into a
  * valid ProtocolSettings, filling any missing/garbage keys from the defaults.

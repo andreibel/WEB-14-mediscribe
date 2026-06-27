@@ -12,13 +12,6 @@ export type StaffMember = {
   color: string
 }
 
-/** Speaker resolved from Soniox token → staff member (or unresolved) */
-export type SpeakerResolution = {
-  token: string                // Soniox token e.g. "S1"
-  staffId: string | null       // null = not yet identified
-  confidence: 'enrolled' | 'manual' | 'unresolved'
-}
-
 export type TranscriptSegment = {
   id: string
   seq?: number          // DB row id (transcript_segments.seq), set once persisted

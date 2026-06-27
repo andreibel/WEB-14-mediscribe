@@ -1,7 +1,8 @@
+import { type InputHTMLAttributes, type ReactNode } from "react";
 import { Check } from "lucide-react";
 
-interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
-  label: React.ReactNode;
+interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
+  label: ReactNode;
 }
 
 /** Brand checkbox with a custom terracotta box (peer-driven, no JS). */

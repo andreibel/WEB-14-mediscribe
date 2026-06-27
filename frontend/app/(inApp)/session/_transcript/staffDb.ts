@@ -15,24 +15,6 @@ export function staffById(id: string): StaffMember | undefined {
   return STAFF_DB.find(s => s.id === id)
 }
 
-/** Fuzzy match a transcribed utterance (e.g. "אני כהן" or "I'm Dr. Cohen") → best StaffMember */
-export function fuzzyMatchStaff(text: string): StaffMember | null {
-  const normalized = text.toLowerCase().trim()
-  let best: StaffMember | null = null
-  let bestScore = 0
-
-  for (const s of STAFF_DB) {
-    let score = 0
-    if (normalized.includes(s.nameHe.toLowerCase())) score += 10
-    if (s.nameEn && normalized.includes(s.nameEn.toLowerCase())) score += 8
-    // Partial: first two chars
-    if (normalized.includes(s.nameHe.slice(0, 2))) score += 3
-    if (score > bestScore) { best = s; bestScore = score }
-  }
-
-  return bestScore >= 3 ? best : null
-}
-
 /** Unresolved placeholder for unknown speaker tokens */
 export function unknownSpeaker(token: string): StaffMember {
   const hue = token.charCodeAt(token.length - 1) * 40

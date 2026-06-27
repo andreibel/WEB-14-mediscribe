@@ -1,7 +1,7 @@
 import {NextResponse, type NextRequest} from "next/server";
 import {getUser, unauthorized} from "@/server/http";
 import {fillForm, InvalidAIResponseError, type FormFillSegment} from "@/server/ai/form-fill";
-import type {MoHFormData} from "../../(inApp)/session/_form/formSchema";
+import type {MoHFormData} from "@/app/(inApp)/session/_form/formSchema";
 
 // Transport layer only: auth gate, parse body, call the backend, respond.
 // Business logic lives in `server/ai/form-fill.ts`.

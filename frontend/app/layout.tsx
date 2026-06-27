@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { type ReactNode } from "react";
 import { Manrope, JetBrains_Mono } from "next/font/google";
 import { AppNav } from "@/components/app/nav/AppNav";
 import { createClient } from "@/lib/supabase/server";
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
  * `(auth)`). Sets the font and applies the persisted theme before paint
  * so there's no light/dark flash on load.
  */
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   // Decide the nav variant on the server so the correct nav paints immediately.
   // getClaims() verifies the JWT locally (asymmetric keys) instead of calling the
   // remote Auth server — this layout runs on every request, so it's the hottest path.
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             __html: `(function(){try{var s=localStorage.getItem('ms-theme');var d=s?s==='dark':matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
           }}
         />
+        <title>Mediscribe</title>
       </head>
       <body className="font-sans antialiased">
         <AppNav initialAuthed={!!user} />

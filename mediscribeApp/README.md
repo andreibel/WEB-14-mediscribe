@@ -118,6 +118,13 @@ The script uses `.env.local` for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUP
 - `server/README.md` explains the backend layering and transport rules.
 - `DATABASE.md` documents the Supabase schema and table design.
 
+## Authors
+
+**Linoy Cohen, Asaf Eliyahu, Tehila Ben Dahan, Etay Ofir, Andrei Bel**
+
+Information Systems Engineering & Software Engineering Students
+Course: Advanced Web Technologies
+
 ## License
 
 This project is currently a private/experimental codebase. Review the repo owner for licensing details.

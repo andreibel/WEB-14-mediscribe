@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { Mail, Stethoscope } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileActions } from "./ProfileActions";
+import { ProfileEditForm } from "./ProfileEditForm";
+import type { ProfileInput } from "./actions";
 
 type ProfileRow = {
   name: string;
@@ -15,26 +17,38 @@ type ProfileRow = {
 
 export default async function ProfilePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  // Middleware already gates this route, but a server page that needs the
-  // user's identity stays defensive in case the session expired mid-request.
-  if (!user) redirect("/login");
+  // getClaims() verifies the JWT locally (asymmetric ES256 keys) — no round-trip
+  // to the Auth server in Singapore, unlike getUser(). Middleware already gated
+  // this route; this stays defensive in case the session expired mid-request.
+  const {
+    data: claimsData,
+  } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  if (!claims) redirect("/login");
 
   const { data } = await supabase
     .from("users")
     .select("name, name_he, name_en, role, role_display, initials, color")
-    .eq("id", user.id)
+    .eq("id", claims.sub)
     .maybeSingle();
   const profile = data as ProfileRow | null;
 
-  const email = user.email ?? "";
+  const email = (claims.email as string | undefined) ?? "";
   const displayName = profile?.name || email || "—";
   const roleLabel = profile?.role_display ?? profile?.role;
   const initials = profile?.initials ?? email.slice(0, 2).toUpperCase();
   const color = profile?.color ?? "#8A7E72";
+
+  const editInitial: ProfileInput = {
+    name: profile?.name ?? "",
+    name_he: profile?.name_he ?? "",
+    name_en: profile?.name_en ?? "",
+    role: profile?.role ?? "physician",
+    role_display: profile?.role_display ?? "",
+    initials: profile?.initials ?? "",
+    color: /^#[0-9a-fA-F]{6}$/.test(profile?.color ?? "") ? profile!.color : "#8A7E72",
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center gap-8 px-4 pt-20 pb-12 bg-[#FAF7F4] dark:bg-[#141210]">
@@ -71,6 +85,8 @@ export default async function ProfilePage() {
             </span>
           </div>
         </div>
+
+        <ProfileEditForm initial={editInitial} />
 
         <ProfileActions />
       </section>

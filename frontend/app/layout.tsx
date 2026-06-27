@@ -27,8 +27,11 @@ export const metadata: Metadata = {
  */
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Decide the nav variant on the server so the correct nav paints immediately.
+  // getClaims() verifies the JWT locally (asymmetric keys) instead of calling the
+  // remote Auth server — this layout runs on every request, so it's the hottest path.
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const user = claimsData?.claims ?? null;
 
   return (
     <html lang="en" className={cn("font-mono", manrope.variable, jetbrainsMono.variable)} suppressHydrationWarning>

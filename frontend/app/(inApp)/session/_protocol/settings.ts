@@ -1,21 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
+import {
+  DEFAULT_PROTOCOL_SETTINGS,
+  PROTOCOL_SETTINGS_KEY,
+  type ProtocolSettings,
+} from '@/lib/preferences'
 
-// Protocol panel settings. Local + ephemeral-friendly: persisted only to
-// localStorage (the panel data itself never touches the DB).
+// In-session protocol settings hook. Type, defaults and storage key live in
+// lib/preferences (the single source of truth shared with the Supabase-backed
+// settings page). This hook persists to localStorage only — fast and
+// offline-friendly during a live session; the settings page mirrors the user's
+// saved defaults into the same key so an active session stays in sync.
 
-export interface ProtocolSettings {
-  /** Auto-activate a protocol when its trigger phrase is heard. */
-  autoDetect: boolean
-  /** Play a beep when a step becomes due/overdue. */
-  sound: boolean
-  /** Also raise an OS notification (requires permission). */
-  browserNotify: boolean
-  /** Pan the diagram to keep the current node centered. */
-  follow: boolean
-}
+export type { ProtocolSettings }
 
-const KEY = 'mediscribe.protocol.settings'
-const DEFAULTS: ProtocolSettings = { autoDetect: true, sound: true, browserNotify: false, follow: true }
+const KEY = PROTOCOL_SETTINGS_KEY
+const DEFAULTS = DEFAULT_PROTOCOL_SETTINGS
 
 export function useProtocolSettings(): [ProtocolSettings, (patch: Partial<ProtocolSettings>) => void] {
   // Start from defaults on both server and first client render to avoid a

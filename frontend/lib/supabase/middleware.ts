@@ -39,10 +39,15 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // IMPORTANT: do not run other code between createServerClient and getUser().
+  // IMPORTANT: do not run other code between createServerClient and the claims read.
+  // getClaims() verifies the JWT signature locally against the project's published
+  // ES256 public key (JWKS) — no network call to the Auth server in Singapore, which
+  // is what made getUser() cost ~500-700ms on every request. Real security is RLS in
+  // the DB; this is just the route-gating UX layer, so local verification is enough.
   const {
-    data: {user},
-  } = await supabase.auth.getUser();
+    data: claimsData,
+  } = await supabase.auth.getClaims();
+  const user = claimsData?.claims ?? null;
 
   const {pathname} = request.nextUrl;
   const isProtected = PROTECTED_PREFIXES.some(p => pathname.startsWith(p));

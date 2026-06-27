@@ -1,0 +1,31 @@
+# Dependencies & build output (rebuilt inside the image)
+node_modules
+.next
+out
+build
+
+# Local env / secrets — provided by Render at build & runtime instead
+.env*
+
+# Tooling & editor
+.idea
+.vscode
+.claude
+.agents
+.mcp.json
+skills-lock.json
+
+# VCS & misc
+.git
+.gitignore
+*.tsbuildinfo
+npm-debug.log*
+.DS_Store
+
+# Docs (not needed in the image)
+README.md
+AGENTS.md
+CLAUDE.md
+DATABASE.md
+Dockerfile
+.dockerignore

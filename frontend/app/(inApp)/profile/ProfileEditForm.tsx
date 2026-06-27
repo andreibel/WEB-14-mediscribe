@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useState, useTransition, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { User, Languages, Stethoscope, Check } from "lucide-react";
 import { TextField } from "@/components/ui/TextField";
@@ -21,7 +21,7 @@ export function ProfileEditForm({ initial }: { initial: ProfileInput }) {
     setDone(false);
   }
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+  function onSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setDone(false);

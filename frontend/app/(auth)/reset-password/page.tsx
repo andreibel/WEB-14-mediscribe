@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import Link from "next/link";
 import { Lock, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { TextField } from "@/components/ui/TextField";
@@ -26,7 +26,7 @@ export default function ResetPasswordPage() {
     });
   }, []);
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     if (password.length < 8) {

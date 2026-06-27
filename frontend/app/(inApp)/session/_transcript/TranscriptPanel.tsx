@@ -55,7 +55,7 @@ export function TranscriptPanel({ sessionId, onSegmentFinalized, onSessionStart,
 
   const handleStartSession = () => {
     onSessionStart?.()
-    t.connect()
+    void t.connect()
   }
 
   const handleStop = () => {

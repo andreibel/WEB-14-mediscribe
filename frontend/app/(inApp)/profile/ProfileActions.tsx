@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, LogOut } from "lucide-react";
 import { TextField } from "@/components/ui/TextField";
@@ -16,7 +16,7 @@ export function ProfileActions() {
   const [done, setDone] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setDone(false);

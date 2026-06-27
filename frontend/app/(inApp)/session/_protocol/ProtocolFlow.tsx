@@ -123,7 +123,7 @@ function Recenter({
     // snap up to a crisp 1× when zoomed below readable.
     const z = getZoom()
     const zoom = z < 0.85 ? 1 : z
-    setCenter(p.x + 90, p.y + 38, { zoom, duration: 500 })
+    void setCenter(p.x + 90, p.y + 38, { zoom, duration: 500 })
   }, [nodeId, follow, positions, setCenter, getZoom])
   return null
 }

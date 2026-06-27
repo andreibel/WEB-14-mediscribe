@@ -122,8 +122,7 @@ The script uses `.env.local` for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUP
 
 **Linoy Cohen, Asaf Eliyahu, Tehila Ben Dahan, Etay Ofir, Andrei Bel**
 
-Information Systems Engineering & Software Engineering Students
-Course: Advanced Web Technologies
+Information Systems Engineering & Software Engineering Students Course: Advanced Web Technologies
 
 ## License
 

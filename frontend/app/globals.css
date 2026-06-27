@@ -7,6 +7,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* noinspection CssUnresolvedCustomProperty -- --font-manrope is injected at
+     runtime by the Next font loader (manrope.variable on <html>, see layout.tsx). */
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;
 }
@@ -14,28 +16,6 @@
 html,
 body {
   height: 100%;
-}
-
-/* Hero signature graphic: bars "breathe" like live audio, scaling between
-   --wave-min and full height. */
-@layer utilities {
-  @keyframes wave-bar {
-    from {
-      transform: scaleY(var(--wave-min, 0.55));
-    }
-    to {
-      transform: scaleY(1);
-    }
-  }
-}
-
-/* A real media query (not a Tailwind variant class) so this can't lose a
-   specificity tie against the animation utility it's meant to override. */
-@media (prefers-reduced-motion: reduce) {
-  .wave-bar {
-    animation: none !important;
-    transform: scaleY(0.82) !important;
-  }
 }
 
 @theme inline {

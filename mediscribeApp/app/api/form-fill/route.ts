@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const user = await getUser();
   if (!user) return unauthorized();
 
-  const {segments, currentForm} = (await req.json()) as {
+  const {segments,  } = (await req.json()) as {
     segments: FormFillSegment[];
     currentForm: MoHFormData;
   };

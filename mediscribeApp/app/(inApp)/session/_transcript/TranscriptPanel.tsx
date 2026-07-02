@@ -17,7 +17,6 @@ export function TranscriptPanel({ sessionId, onSegmentFinalized, onSessionStart,
   onSessionStart?: () => void
   onSessionEnd?: () => void
 }) {
-  const t = useTranscript(sessionId, onSegmentFinalized)
   const { staff, byId: staffBy } = useStaff()
 
   const [pickerSegment, setPickerSegment] = useState<TranscriptSegment | null>(null)
